@@ -40,6 +40,17 @@
 	Point.prototype.getYComponent = function (PointObj) {
 		return this.y - PointObj.y; // negative if downwards 
 	}
+	Point.prototype.moveXDirection(distance) {
+		this.x += distance;
+		return this.x;
+	}
+	Point.prototype.moveYDirction(distance) {
+		this.y += distance;
+		return this.y;
+	}
+	Point.prototype.clone() {
+		return new Point(this.x, this.y);
+	}
 
 
 	// returns a world file object.
@@ -53,8 +64,8 @@
 		 *
 		 * The tangent function will return an angle between pi/2 and -pi/2, so if the
 		 * x component is negative we need to be sure to flip the final image to reflect
-		 * this. This easily done by making the world file lines A or E negative or 
-		 * positive as needed.
+		 * this. This is easily done by making the world file lines A or E negative or 
+		 * positive as needed, but this happens automatically when we calculate the scales.
 		 *
 		 * Then, we just need to calculate the top left coordinates for lines C and F.
 		 */
@@ -109,21 +120,30 @@
 		 * base image's pixels. Keep in mind that the upper left corner could
 		 * truly be any of the corners after the rotation, but we want the 
 		 * nominal origin from which the affine translation can do it's work.
-		 * 
+		 * We need the angle that the line from A to the origin makes with the
+		 * x-axis. Then we need to add the rotation angle to that angle. This
+		 * gives us a complete angle and a distance that we can apply to  
+		 * point A in the base image to get the final coordinate of the sub 
+		 * image's origin placed on the base image.
 		 */
 		 var origin = new Point(0,0);
 		 var x = origin.getXComponent(subA);
 		 var y = origin.getYComponent(subA); // It's a negative component, but we'll square it.
+		 
 		 var distance = Math.sqrt( 
 		 						Math.pow(x * Math.abs(xScale), 2) + 
 		 						Math.pow(y * Math.abs(yScale), 2) ); // pythagorean 
 		
-		/////////////////// TO DO //////////////////////////////////
-		// this still needs to be finished
-		 
-		 
+		var angle = angleOfRotation + Math.tan(y/x);
+		
+		var xComponent = distance * Math.cos(angle);
+		var yComponent = distance * Math.sin(angle);
+			
+		var temp = baseA.clone();
+		var upperLeftX = temp.moveXDirection(xComponent);
+		var upperLeftY = temp.moveYDirection(yComponent);
 
-		return new WorldFile(xScale, ySkew, xSkew, yScale, 0, 0);
+		return new WorldFile(xScale, ySkew, xSkew, yScale, upperLeftX, upperLeftY);
 		
 	}
 
@@ -284,6 +304,7 @@
 </head> 
 <body onload="init()"> 
 <h1>Google Summer of Code Sandbox</h1>
+<a href="https://github.com/psoots/GSOC">Source Code on Github</a>
 <div id="text"></div>
 <div id="base" class="smallmap"></div>
 <div id="sub" class="smallmap"></div>
