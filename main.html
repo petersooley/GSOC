@@ -5,8 +5,8 @@
 	<title>Google Summer of Code Sandbox</title> 
 	
 	<!-- Sytlesheets -->
-	<link rel="stylesheet" href="DefaultStyle.css" type="text/css" /> 
-   <link rel="stylesheet" href="ExamplesStyle.css" type="text/css" /> 
+	<link rel="stylesheet" href="styles/style.css" type="text/css" /> 
+   <link rel="stylesheet" href="styles/examples.css" type="text/css" /> 
 	
 	<!-- Libraries -->
 	<script src="OpenLayers/lib/OpenLayers.js"></script> 
@@ -15,7 +15,117 @@
 	<script src="GeoRef.js"></script>
 	<script src="myUtil.js"></script>
 	<script type="text/javascript"> 
+	
+	function WorldFile(A, D, B, E, C, F) {
+		this.A = A;
+		this.D = D;
+		this.B = B;
+		this.E = E;
+		this.C = C;
+		this.F = F;
+	}
+	WorldFile.prototype.display = function(div) {
+		document.getElementById(div).innerHTML = 
+			"<h3>World File</h3>"+this.A+"<br>"+this.D+"<br>"+
+				this.B+"<br>"+this.E+"<br>"+this.C+"<br>"+this.F;
+	}
 
+	function Point(x, y) {
+		this.x = x;
+		this.y = y;
+	}
+	Point.prototype.getXComponent = function (PointObj) {
+		return PointObj.x - this.x;
+	}
+	Point.prototype.getYComponent = function (PointObj) {
+		return this.y - PointObj.y; // negative if downwards 
+	}
+
+
+	// returns a world file object.
+	function writeWorldFile(subW, subH, subA, subB, baseW, baseH, baseA, baseB) {
+		/*
+		 * First we need to find the angles from the x axis starting at point A.
+		 * To do this, we need the x and y components between the points and then we
+		 * need to use a tangent function to determine the angle. The the ratio of x and y
+		 * components compared to the sub image will allow us to determine lines A and E 
+		 * of the world file and scale the image appropriately.
+		 *
+		 * The tangent function will return an angle between pi/2 and -pi/2, so if the
+		 * x component is negative we need to be sure to flip the final image to reflect
+		 * this. This easily done by making the world file lines A or E negative or 
+		 * positive as needed.
+		 *
+		 * Then, we just need to calculate the top left coordinates for lines C and F.
+		 */
+		 
+		/*
+		 * Get the components of the line from A to B for the sub and base images.
+		 */
+		var subXComponent = subA.getXComponent(subB);
+		var subYComponent = subA.getYComponent(subB);
+		var baseXComponent = baseA.getXComponent(baseB);
+		var baseYComponent = baseA.getYComponent(baseB);
+		
+		/*
+		 * We can determine how much we need to scale the sub image by looking at the 
+		 * components between point A and B. These are the world file lines A and E.
+		 * If these end up negative or positive, that's fine because that will flip the
+		 * image appropriately.
+		 */
+		var xScale = subXComponent / baseXComponent;
+		var yScale = subYComponent / baseYComponent;
+		
+		/*
+		 * Find the angles for the AB line.
+		 */
+		var subAngle = Math.atan(subYComponent / subXComponent);
+		var baseAngle = Math.atan(baseYComponent / baseXComponent);
+		/*
+		 * The angle of rotation is how much we need to rotate the sub image
+		 * to fit on the base image. This will help us determine lines B and D
+		 * of the world file. We can figure out the rotation by doing a simple
+		 * subtraction because all the hard work of angle geometry is solved 
+		 * when the xScale and yScale flip the image leaving us with just one
+		 * quadrant to work in. However, we have to be careful that negative
+		 * angles are subtracted correctly.
+		 */
+		var angleOfRotation;
+		if((xScale < 0 || yScale < 0) && !(xScale < 0 && yScale < 0))
+			angleOfRotation = baseAngle + subAngle; // one of the angles is negative
+		else
+			angleOfRotation = baseAngle - subAngle; // the angles are either both pos. or both neg.
+		
+		/*
+		 * Calculate lines B and D using trig.
+		 */
+		ySkew = xScale * Math.tan(angleOfRotation);
+		xSkew = yScale * Math.tan(angleOfRotation);
+		
+		/*
+		 * Find the top left point of the sub image within the base image. To
+		 * do this, find the distance from point A in the sub image to its 
+		 * upper left corner but with the pixels scaled to the size of the
+		 * base image's pixels. Keep in mind that the upper left corner could
+		 * truly be any of the corners after the rotation, but we want the 
+		 * nominal origin from which the affine translation can do it's work.
+		 * 
+		 */
+		 var origin = new Point(0,0);
+		 var x = origin.getXComponent(subA);
+		 var y = origin.getYComponent(subA); // It's a negative component, but we'll square it.
+		 var distance = Math.sqrt( 
+		 						Math.pow(x * Math.abs(xScale), 2) + 
+		 						Math.pow(y * Math.abs(yScale), 2) ); // pythagorean 
+		
+		/////////////////// TO DO //////////////////////////////////
+		// this still needs to be finished
+		 
+		 
+
+		return new WorldFile(xScale, ySkew, xSkew, yScale, 0, 0);
+		
+	}
 
 	function makeImageLayer(name, imageObject) {
 		var w = imageObject.width;
@@ -83,39 +193,22 @@
 		return vl;
 	}
 	
-	function collectPoints(vectorLayer, $pointArray, outputName, imageObject) {
+	function collectPoints(vectorLayer, pointArray, outputName, imageObject) {
 		// Register for featureadded events
 		vectorLayer.events.register('featureadded', this, function(event) { 
 			// Add Points to the array
 			var p = new GeoRef.Point(event.feature.geometry.x, event.feature.geometry.y, imageObject);
-			$pointArray[$pointArray.length] = p;
+			pointArray[pointArray.length] = p;
 			// Temporarily display the points
 			var string = "";
-			for(var i = 0; i < $pointArray.length; ++i) {
-				string = string + "<p>Point #"+(i+1)+"	x: "+$pointArray[i].x+"	y: "+$pointArray[i].y +"</p>";
+			for(var i = 0; i < pointArray.length; ++i) {
+				string = string + "<p>Point #"+(i+1)+"	x: "+pointArray[i].x+"	y: "+pointArray[i].y +"</p>";
 			}
 			document.getElementById(outputName).innerHTML = string; 
 		});
 	}
-	
-	function calculateWorldFile(subPointsArray, basePointsArray, $worldFile) {
-		var s = subPointsArray;
-		var b = basePointsArray;
-		var w = $worldFile;
-		var length = s.length > b.length ? s.length : b.length;
-		
-		// calculate translation
-		var sPoint = s[0];
-		var bPoint = b[0];
-		
-		console.log(sPoint.x);
-	
-		
-		for(var i = 1; i < length; ++i) {
-			
-		}
-	}
 	function init() {
+	
 		var baseImage = new GeoRef.Image(
 			"base.png",
 			2000,
@@ -139,7 +232,6 @@
 		sub.addLayer(subLayer);
 		sub.zoomToMaxExtent();
 
-		base.addControl( new OpenLayers.Control.MousePosition());
 
 		/*
 		 * Add vector layers for making control points.
@@ -152,13 +244,11 @@
 		collectPoints(baseCPLayer, baseCPs, "basePoints", baseImage);
 		collectPoints(subCPLayer, subCPs, "subPoints", subImage);
 		
-		
-		
 		var worldFile = {
-			A			: 100,
+			A			: 1,
 			B			: 0, // only this works
 			C			: 0, // and this works
-			D			: -100,
+			D			: -1,
 			E			: 0,
 			F			: 0
 		};
@@ -180,8 +270,14 @@
 			base.addLayer(sub2Layer);
 			base.addControl(new OpenLayers.Control.LayerSwitcher());
 		
-		} );
+		} ); 
 	 		
+	 	var subA = new Point(100, 300);
+	 	var subB = new Point(750, 400);
+	 	var baseA = new Point(1000, 500);
+	 	var baseB = new Point(500, 800);
+	 	var wf = writeWorldFile(800, 600, subA, subB, 2000, 1000, baseA, baseB);
+	 	wf.display("worldFile");
 	}
 	
  	</script> 
@@ -191,6 +287,7 @@
 <div id="text"></div>
 <div id="base" class="smallmap"></div>
 <div id="sub" class="smallmap"></div>
+<div id="worldFile"></div>
 <h3>Base Image Control Points</h3>
 <div id="basePoints"></div>
 <br>
