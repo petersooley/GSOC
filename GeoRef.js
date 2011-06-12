@@ -14,9 +14,7 @@
 		this.y = yPosition * plotUnitHeight;
 		this.image = imageObject;
 	}
-	GeoRef.Point.prototype.distance = function( pointObj, $distance, $xComponent, $yComponent ) {
-		
-	}
+
 	
 	GeoRef.Image = function (url, width, height) {
 		this.url = url;
