@@ -40,15 +40,15 @@
 	Point.prototype.getYComponent = function (PointObj) {
 		return this.y - PointObj.y; // negative if downwards 
 	}
-	Point.prototype.moveXDirection(distance) {
+	Point.prototype.moveXDirection = function (distance) {
 		this.x += distance;
 		return this.x;
 	}
-	Point.prototype.moveYDirction(distance) {
+	Point.prototype.moveYDirection = function (distance) {
 		this.y += distance;
 		return this.y;
 	}
-	Point.prototype.clone() {
+	Point.prototype.clone = function () {
 		return new Point(this.x, this.y);
 	}
 
