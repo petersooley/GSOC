@@ -16,8 +16,6 @@
 	<script src="myUtil.js"></script>
 	<script type="text/javascript"> 
 	
-	var global = {}; // Generic object for global variables.
-	
 	function WorldFile(A, D, B, E, C, F) {
 		this.A = A;
 		this.D = D;
@@ -28,7 +26,7 @@
 	}
 	WorldFile.prototype.display = function(div) {
 		document.getElementById(div).innerHTML = 
-			"<h3>World File (pixels)</h3>"+this.A+"<br>"+this.D+"<br>"+
+			"<h3>World File</h3>"+this.A+"<br>"+this.D+"<br>"+
 				this.B+"<br>"+this.E+"<br>"+this.C+"<br>"+this.F;
 	}
 
@@ -54,11 +52,6 @@
 		return new Point(this.x, this.y);
 	}
 
-	function Image(url, width, height) {
-		this.url = url;
-		this.width = width;
-		this.height = height;
-	}
 
 	// returns a world file object.
 	function writeWorldFile(subW, subH, subA, subB, baseW, baseH, baseA, baseB) {
@@ -91,8 +84,8 @@
 		 * If these end up negative or positive, that's fine because that will flip the
 		 * image appropriately.
 		 */
-		var xScale = baseXComponent / subXComponent;
-		var yScale = baseYComponent / subYComponent;
+		var xScale = subXComponent / baseXComponent;
+		var yScale = subYComponent / baseYComponent;
 		
 		/*
 		 * Find the angles for the AB line.
@@ -132,9 +125,6 @@
 		 * gives us a complete angle and a distance that we can apply to  
 		 * point A in the base image to get the final coordinate of the sub 
 		 * image's origin placed on the base image.
-		 *
-		 *
-		 * NEEDS TESTING! MAY NOT BE WORKING PROPERLY!
 		 */
 		 var origin = new Point(0,0);
 		 var x = origin.getXComponent(subA);
@@ -157,27 +147,14 @@
 		
 	}
 
-	function calculateWorldFile(div) {
-		with(global) {
-			if(subCPs.length > 1 && baseCPs.length > 1) {
-				global.worldFile = writeWorldFile(2000, 1000, subCPs[0], subCPs[1], 2000, 1000, baseCPs[0], baseCPs[1]);
-		 		worldFile.display(div);
-			}
-			else {
-				document.getElementById(div).innerHTML = "<p>Oops! Not enough control points</p>";
-			}
-		}
-	};
-
 	function makeImageLayer(name, imageObject) {
 		var w = imageObject.width;
 		var h = imageObject.height;
-		// The default projection is EPSG WGS 84, so the bounds are -180, -90, 180, 90. 
-		var bounds = new OpenLayers.Bounds(-180, -90, 180, 90);
+		var bounds = new OpenLayers.Bounds(-180, -1*((180*h)/w), 180, ((180*h)/w));
 		var size = new OpenLayers.Size(w, h);
 		var opts = {
-			numZoomLevels	: 10, // arbitrary
-			maxResolution	: 1 // one pixel per one map unit
+			numZoomLevels	: 10,
+			maxResolution	: 1
 		};
 		return new OpenLayers.Layer.Image(name, imageObject.url, bounds, size, opts);
 	}
@@ -188,6 +165,7 @@
 		map.zoomToMaxExtent();
 		return map;
 	}
+	
 	function addControlPointsLayer(mapObject, layerName) {
 		var vl = new OpenLayers.Layer.Vector(layerName);
 		mapObject.addLayer(vl);
@@ -209,10 +187,8 @@
 		
 		
 		// Add styles to the vector layer (to display the label)
-		// These settings are all default (but if you change one setting, they
-		// all go away, so you have to repeat them like I am doing here.)
 		var vs = new OpenLayers.Style({
-			'label'			: '${label}', // <--This is the whole point of the Style object
+			'label'			: '${label}',
 			'fillColor'		: '#ee9900',
 			'fillOpacity'	: .6,
 			'strokeWidth'	: 2,
@@ -237,44 +213,28 @@
 		return vl;
 	}
 	
-	function collectPoints(vectorLayer, pointArray, outputDiv, imageObj) {
+	function collectPoints(vectorLayer, pointArray, outputName, imageObject) {
 		// Register for featureadded events
 		vectorLayer.events.register('featureadded', this, function(event) { 
-			
-			// Convert the projected points into pixels
-			// 	- set the origin from the center to the top left
-			var x = event.feature.geometry.x + 180; 
-			var y = 90 - event.feature.geometry.y;
-			//		- find the dimensions of the map unit
-			var mapUnitWidth = imageObj.width / 360;
-			var mapUnitHeight = imageObj.height / 180;
-			// 	- determine the actual pixel distance
-			x *= mapUnitWidth;
-			y *= mapUnitHeight;
-			
-			// add point to the array
-			var p = new Point(x, y);
+			// Add Points to the array
+			var p = new GeoRef.Point(event.feature.geometry.x, event.feature.geometry.y, imageObject);
 			pointArray[pointArray.length] = p;
-			
 			// Temporarily display the points
 			var string = "";
 			for(var i = 0; i < pointArray.length; ++i) {
 				string = string + "<p>Point #"+(i+1)+"	x: "+pointArray[i].x+"	y: "+pointArray[i].y +"</p>";
 			}
-			document.getElementById(outputDiv).innerHTML = string; 
+			document.getElementById(outputName).innerHTML = string; 
 		});
 	}
-	
-	
-	
 	function init() {
 	
-		var baseImage = new Image(
+		var baseImage = new GeoRef.Image(
 			"base.png",
 			2000,
 			1000
 		);
-		var subImage = new Image(
+		var subImage = new GeoRef.Image(
 			"sub.png",
 			2000,
 			1000
@@ -299,21 +259,25 @@
 		var baseCPLayer = addControlPointsLayer(base, "base points layer");
 		var subCPLayer = addControlPointsLayer(sub, "sub points layer");	
 		
-		global.baseCPs = new Array();
-		global.subCPs = new Array();
-		collectPoints(baseCPLayer, global.baseCPs, "basePoints", baseImage);
-		collectPoints(subCPLayer, global.subCPs, "subPoints", subImage);
+		var baseCPs = new Array();
+		var subCPs = new Array();
+		collectPoints(baseCPLayer, baseCPs, "basePoints", baseImage);
+		collectPoints(subCPLayer, subCPs, "subPoints", subImage);
 		
-		/*
-		 * Eventually, we'd like to add a new layer of the adjusted sub
-		 * image to the map. We're not that far yet. But it may look 
-		 * something like this.
-		 */
-		/*myUtil.POST("alterImage.php", worldFile, function(response){
-			//document.getElementById("text").innerHTML = response; // for testing
+		var worldFile = {
+			A			: 1,
+			B			: 0, // only this works
+			C			: 0, // and this works
+			D			: -1,
+			E			: 0,
+			F			: 0
+		};
+		
+		myUtil.POST("alterImage.php", worldFile, function(response){
+			document.getElementById("text").innerHTML = response;
 			
 			// now that we've altered the sub image...
-			var sub2Image = new Image(
+			var sub2Image = new GeoRef.Image(
 				"alteredSub.png",
 				2000,
 				1000
@@ -326,8 +290,14 @@
 			base.addLayer(sub2Layer);
 			base.addControl(new OpenLayers.Control.LayerSwitcher());
 		
-		} ); */
-	 
+		} ); 
+	 		
+	 	var subA = new Point(100, 300);
+	 	var subB = new Point(750, 400);
+	 	var baseA = new Point(1000, 500);
+	 	var baseB = new Point(500, 800);
+	 	var wf = writeWorldFile(800, 600, subA, subB, 2000, 1000, baseA, baseB);
+	 	wf.display("worldFile");
 	}
 	
  	</script> 
@@ -338,8 +308,6 @@
 <div id="text"></div>
 <div id="base" class="smallmap"></div>
 <div id="sub" class="smallmap"></div>
-<button type="button" onclick="calculateWorldFile('worldFile');">Calculate World File</a></button>
-<p>Currently the world file is calculated with just the first two control points</p>
 <div id="worldFile"></div>
 <h3>Base Image Control Points</h3>
 <div id="basePoints"></div>
