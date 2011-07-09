@@ -17,7 +17,6 @@
 <input type="file" name="baseImage" id="inputBaseImage"/>
 <label for="inputSubImage">Sub Image</label>
 <input type="file" name="subImage" id="inputSubImage"/>
-<input type="hidden" id="state" name="state" value="loadImages"/>
 <input type="submit" value="submit" />
 </form>
 <div id="error">

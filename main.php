@@ -9,12 +9,12 @@ if($_FILES['baseImage']['error'] != UPLOAD_ERR_OK ||
 }
 
 // This is where we'll store our images temporarily
-$dataDir = "data";
+$dataDir = "data/";
 		
 		
 // Get the details about the base image. We'll use these details later in the javascript.
-list($_SESSION['baseWidth'], $_SESSION['baseHeight'], $bType, $ignored) = getimagesize($_FILES['baseImage']['tmp_name']);
-$baseFile = $dataDir."/base".time();
+list($bWidth, $bHeight, $bType, $ignored) = getimagesize($_FILES['baseImage']['tmp_name']);
+$baseFile = $dataDir."base".time();
 	
 // Store the image url in a session variable and save the image to the data directory.
 switch($bType) {
@@ -34,12 +34,18 @@ switch($bType) {
 		$_SESSION['baseType'] = "PNG";
 		$_SESSION['baseImage'] = $baseFile.".png";
 		$_SESSION['baseWorldFile'] = $baseFile.".pgw";		
-		imagepng(imagecreatefrompng($_FILES['baseImage']['tmp_name']), $_SESSION['baseImage']);	
+		$image = imagecreatefrompng($_FILES['baseImage']['tmp_name']);
+		imagepng($image, $_SESSION['baseImage']);	
+		imagedestroy($image);
 		break;
 }
+
+// Save data in session
+$_SESSION['baseHeight'] = $bHeight;
+$_SESSION['baseWidth'] = $bWidth;		
 		
 // Get the details about the sub image. We'll use these details later in the javascript.
-list($_SESSION['subWidth'], $_SESSION['subHeight'], $sType, $ignored) = getimagesize($_FILES['subImage']['tmp_name']);
+list($sWidth, $sHeight, $sType, $ignored) = getimagesize($_FILES['subImage']['tmp_name']);
 $subFile = $dataDir."/sub".time();
 		
 // Store the image url in a session variable and save the image to the images directory.
@@ -60,9 +66,15 @@ switch($sType) {
 		$_SESSION['subType'] = "PNG";	
 		$_SESSION['subImage'] = $subFile.".png";
 		$_SESSION['subWorldFile'] = $subFile.".pgw";
-		imagepng(imagecreatefrompng($_FILES['subImage']['tmp_name']), $_SESSION['subImage']);	
+		$image = imagecreatefrompng($_FILES['subImage']['tmp_name']);
+		imagepng($image, $_SESSION['subImage']);	
+		imagedestroy($image);
 		break;
 }
+
+// Save data in Session
+$_SESSION['subHeight'] = $sHeight;
+$_SESSION['subWidth'] = $sWidth;
 
 // While we're in the middle of making files, let's go ahead and make the MapFile too.
 $_SESSION['mapFile'] = $dataDir."/mapfile.map";
@@ -270,12 +282,23 @@ $_SESSION['mapFile'] = $dataDir."/mapfile.map";
 	function makeImageLayer(name, imageObject) {
 		var w = imageObject.width;
 		var h = imageObject.height;
-		// The default projection is EPSG WGS 84, so the bounds are -180, -90, 180, 90. 
-		var bounds = new OpenLayers.Bounds(-180, -90, 180, 90);
+		
+		// In Openlayers coordinates, the origin is in the middle of the
+		// image. So, we just have to plan our boundaries accordingly, by
+		// dividing our heights and widths by 2 to find the centers.	
+		var bounds = new OpenLayers.Bounds(-(w / 2), -(h / 2), (w / 2), (h / 2));
 		var size = new OpenLayers.Size(w, h);
+		
+		
+		// We need to determine the max resolution, because small images won't be 
+		// zoomed in enough and large images will be zoomed in too far. This 
+		// calculation was just a guess, but it does the job perfectly.
+		var area = h * w;
+		var res = Math.log(area) * Math.LOG10E; // calculates base 10 of area
+		
 		var opts = {
 			numZoomLevels	: 10, // arbitrary
-			maxResolution	: 1 // one pixel per one map unit
+			maxResolution	: res   // one pixel per one map unit
 		};
 		return new OpenLayers.Layer.Image(name, imageObject.url, bounds, size, opts);
 	}
@@ -401,35 +424,6 @@ $_SESSION['mapFile'] = $dataDir."/mapfile.map";
 		global.subCPs = new Array();
 		collectPoints(baseCPLayer, global.baseCPs, "basePoints", baseImage);
 		collectPoints(subCPLayer, global.subCPs, "subPoints", subImage);
-		
-		var wf = new WorldFile(1, 0, 0, -.5, 49, 39);
-		
-		/*
-		 * Eventually, we'd like to add a new layer of the adjusted sub
-		 * image to the map. We're not that far yet. But it may look 
-		 * something like this.
-		 */
-		 /*
-		myUtil.POST("alterImage.php", wf.toData(), function(response){
-			document.getElementById("text").innerHTML = response; // for testing
-			
-			// now that we've altered the sub image...
-			var sub2Image = new Image(
-				"alteredSub.png",
-				2000,
-				1000
-			);		
-			// make the altered image into a layer
-			var sub2Layer = makeImageLayer("sub altered", sub2Image);
-			sub2Layer.setIsBaseLayer(false);
-			
-			// add the altered image to the base image
-			base.addLayer(sub2Layer);
-
-			base.addControl(new OpenLayers.Control.LayerSwitcher());
-		
-		} ); */
-	 
 	}
 	
  	</script> 

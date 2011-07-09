@@ -118,11 +118,11 @@ David Flanagan's book, "Javascript: the Definitive Guide."
 		 * displayProps() displays the properties and their values of the given object.
 		 */
 		displayProps:
-				function (object, div) {
-					for(var prop in object) 
-						document.getElementById(div).innerHTML = 
-							document.getElementById(div).innerHTML + prop + " : " + object[prop] + "<br><br>";
-		}
+			function (object, div) {
+				for(var prop in object) 
+					document.getElementById(div).innerHTML = 
+						document.getElementById(div).innerHTML + prop + " : " + object[prop] + "<br><br>";
+			}
 		
 	
 	};
