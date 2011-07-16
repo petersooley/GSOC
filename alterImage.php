@@ -1,3 +1,33 @@
+/*
+ * Copyright © 2011 by Peter Soots
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *
+ *
+ *
+ * alterImage.php
+ *
+ * This file simply takes a world file from JavaScript, makes alterations to 
+ * the images and produces a MapServer environment that JavaScript will later
+ * need to create an OpenLayers.Layer.MapServer object.
+ * 
+ */
+
 <?php
 session_start();
 
@@ -11,7 +41,9 @@ $mapFactor = 1;
 
 // Check for errors 
 function getErrors($e_type, $e_message, $e_file, $e_line) {
-	echo "<p>".$e_type." ".$e_message." ".$e_file." ".$e_line."</p>";
+	$error = array("error" => "<p>".$e_type." ".$e_message." ".$e_file." ".$e_line."</p>");
+	echo json_encode($error);
+	
 }
 error_reporting(E_ALL);
 set_error_handler("getErrors");
@@ -22,17 +54,17 @@ extract($_POST); // $A, $B, $C, $D, $E, $F
 // Build the world file that we created in JavaScript
 $string = $A."\n".$D."\n".$B."\n".$E."\n".$C."\n".$F."\n";
 
-$subPixelHeight = $_SESSION['subHeight'] > 180 ? 180 / ($_SESSION['subHeight'] * $mapFactor) : ($_SESSION['subHeight'] * $mapFactor) / 180;
-$subPixelWidth = $_SESSION['subWidth'] > 360 ? 360 / ($_SESSION['subWidth'] * $mapFactor) : ($_SESSION['subWidth'] * $mapFactor)/ 360;
-file_put_contents($_SESSION['subWorldFile'], $subPixelWidth."\n0\n0\n-".$subPixelHeight."\n-180\n90\n"); // this one is temporary, of course
+$worldFile = "1\n0\n0\n-1\n0\n0\n";
+file_put_contents($_SESSION['subWorldFile'], $worldFile); // this one is temporary, of course
 
-$basePixelHeight = $_SESSION['baseHeight'] > 180 ? 180 / ($_SESSION['baseHeight'] * $mapFactor) : ($_SESSION['baseHeight'] * $mapFactor) / 180;
-$basePixelWidth = $_SESSION['baseWidth'] > 360 ? 360 / ($_SESSION['baseWidth'] * $mapFactor) : ($_SESSION['baseWidth'] * $mapFactor)/ 360;
-file_put_contents($_SESSION['baseWorldFile'], $basePixelWidth."\n0\n0\n-".$basePixelHeight."\n-180\n90\n");
+// the user may one day want to associate a world file with the base image (for now, it's just a default one)
+file_put_contents($_SESSION['baseWorldFile'], $worldFile); 
+
+$extent = "0 -".$_SESSION['baseWidth']." ".$_SESSION['baseHeight']." 0";
 
 $mapfile = sprintf("MAP\n");
 $mapfile .= sprintf("    %-36s %s\n", "SHAPEPATH", "'.'");
-$mapfile .= sprintf("    %-36s %s\n", "EXTENT", "-180 -90 180 90");
+$mapfile .= sprintf("    %-36s %s\n", "EXTENT", $extent);
 $mapfile .= sprintf("    %-36s %s\n", "IMAGETYPE", "PNG24");
 $mapfile .= sprintf("    %-36s %s\n", "IMAGECOLOR", "255 255 255");
 $mapfile .= sprintf("    %-36s %s\n", "SIZE", "".$_SESSION['baseWidth']." ".$_SESSION['baseHeight']);
@@ -54,6 +86,15 @@ $mapfile .= sprintf("END\n");
 
 file_put_contents($_SESSION['mapFile'], $mapfile);
 
+$json = array( 'mapfile' => $mapfile, 
+					'mapservURL' => $mapservURL, 
+					'width' => $_SESSION['baseWidth'],
+					'height' => $_SESSION['baseHeight'],
+					'mapserverParams' => array('map' => $mapfileURL,  // it's best to do any real manipulation on the javascript side
+														'layers' => 'base, sub',
+														'mode' => 'map')); 
+
+echo json_encode($json);
 /*
 
 // Warp the image
@@ -70,44 +111,3 @@ if($return != 0)
 */
 
 ?>
-<!doctype html public "-//w3c//dtd html 4.0 transitional//en"> 
-<html> 
-<head> 
-	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"> 
-	<title>Google Summer of Code Sandbox</title> 
-	
-	<!-- Sytlesheets -->
-	<link rel="stylesheet" href="styles/style.css" type="text/css" /> 
-   <link rel="stylesheet" href="styles/examples.css" type="text/css" /> 
-	
-	<!-- Libraries -->
-	<script type="text/javascript" src="imports.js"></script> 
-	<script src="OpenLayers/lib/OpenLayers.js"></script> 
-
-	<!-- Our code -->
-	<script src="myUtil.js"></script>
-	<script type="text/javascript"> 
-	
-	 function init(){
-            map = new OpenLayers.Map( 'map' );
-            layer = new OpenLayers.Layer.MapServer( 
-            		"Your base layer.", 
-                  "<?php echo($mapservURL) ?>", 
-                  {
-                  	layers: 'base, sub',
-                  	map: '<?php echo($mapfileURL) ?>',
-                  	mode: 'map'
-                  });
-		 map.addLayer(layer);
-		 map.addControl(new OpenLayers.Control.MousePosition());
-		 map.zoomToMaxExtent();
-	}
-	</script>
-</head>
-<body onload="init();">
-<h1>Google Summer of Code Sandbox</h1>
-<a href="https://github.com/psoots/GSOC">Source Code on Github</a>
-<div id="map"></div>
-
-
-</body>

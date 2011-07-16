@@ -1,7 +1,33 @@
 /*
-A portion of this contains a modified version of the ajax utility functions found in
-David Flanagan's book, "Javascript: the Definitive Guide." 
-*/
+ * Copyright © 2011 by Peter Soots
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *
+ *
+ *
+ * myUtil.js
+ *
+ * These are just a few utility functions that make JavaScript a little easier.
+ *
+ * Some of this code is modified from the book JavaScript: The Definitive Guide, 
+ * 5th Edition, by David Flanagan. Copyright 2006 O'Reilly Media, Inc. (ISBN #0596101996)
+ * 
+ */
 
 (function(){
 

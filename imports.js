@@ -1,3 +1,10 @@
+/*
+ * This file defines which OpenLayers classes we need. This array
+ * is checked when the OpenLayers library is loaded, so it MUST
+ * come before the OpenLayers library when loaded by html.
+ *
+ */
+
    	window.OpenLayers = [ // only load the ones we need, for speed
                 "OpenLayers/BaseTypes/Class.js",
                 "OpenLayers/Util.js",

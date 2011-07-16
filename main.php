@@ -1,3 +1,34 @@
+/*
+ * Copyright © 2011 by Peter Soots
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *
+ *
+ *
+ * main.php
+ *
+ * Now that we have the images from the user, we need the user to define control
+ * points to georeference the images together. Then we'll create a world file and
+ * use alterImage.php via AJAX to change the image and we'll the new image to the
+ * user.
+ * 
+ */
+
 <?php 
 session_start();
 
@@ -46,7 +77,7 @@ $_SESSION['baseWidth'] = $bWidth;
 		
 // Get the details about the sub image. We'll use these details later in the javascript.
 list($sWidth, $sHeight, $sType, $ignored) = getimagesize($_FILES['subImage']['tmp_name']);
-$subFile = $dataDir."/sub".time();
+$subFile = $dataDir."sub".time();
 		
 // Store the image url in a session variable and save the image to the images directory.
 switch($sType) {
@@ -77,7 +108,7 @@ $_SESSION['subHeight'] = $sHeight;
 $_SESSION['subWidth'] = $sWidth;
 
 // While we're in the middle of making files, let's go ahead and make the MapFile too.
-$_SESSION['mapFile'] = $dataDir."/mapfile.map";
+$_SESSION['mapFile'] = $dataDir."mapfile.map";
 
 
 ?>
@@ -94,6 +125,7 @@ $_SESSION['mapFile'] = $dataDir."/mapfile.map";
 	<!-- Libraries -->
 	<script type="text/javascript" src="imports.js"></script> 
 	<script src="OpenLayers/lib/OpenLayers.js"></script> 
+	<!--<script src="json2.js" type="text/javascript"></script>-->
 
 	<!-- Our code -->
 	<script src="myUtil.js"></script>
@@ -270,14 +302,58 @@ $_SESSION['mapFile'] = $dataDir."/mapfile.map";
 	function calculateWorldFile() {
 		with(global) {
 			if(subCPs.length > 1 && baseCPs.length > 1) {
-				global.worldFile = writeWorldFile(2000, 1000, subCPs[0], subCPs[1], 2000, 1000, baseCPs[0], baseCPs[1]);
-		 		post_to_url("alterImage.php", worldFile.toData());
+				global.worldFile = writeWorldFile(
+															<?php echo $_SESSION['subWidth']; ?>,
+															<?php echo $_SESSION['subHeight']; ?>, 
+															subCPs[0], 
+															subCPs[1], 
+															<?php echo $_SESSION['baseWidth']; ?>,
+															<?php echo $_SESSION['baseHeight']; ?>,
+															baseCPs[0], 
+															baseCPs[1]);
+				
+		 		//post_to_url("alterImage.php", worldFile.toData()); 
+		 		// we'll use AJAX instead...
+		 		myUtil.POST("alterImage.php", global.worldFile.toData(), function(response) { showNewMap(response); });
 			}
 			else {
 				document.getElementById("error").innerHTML = "<p>Oops! Not enough control points</p>";
 			}
 		}
-	};
+	}
+	
+	function showNewMap(response) {
+		var data = JSON.parse(response);
+		
+		document.getElementById("maps").innerHTML = "";
+		if(data.error != undefined) {
+			document.getElementById("text").innerHTML = "error: "+ data.error;
+			return;
+		} 
+		
+		document.getElementById("text").innerHTML = "<pre>"+data.mapfile+"</pre>";
+		
+		// find bounds and resolution like we did before in makeImageLayer();
+		var w = data.width;
+		var h = data.height;
+		var bounds = new OpenLayers.Bounds(-(w / 2), -(h / 2), (w / 2), (h / 2));
+		var size = new OpenLayers.Size(w, h);
+		var area = h * w;
+		var res = Math.log(area) * Math.LOG10E; // calculates base 10 of area
+		var options = { 'bounds' : bounds,
+							'maxResolution' : res,
+							'size' : size };
+		
+		var map = new OpenLayers.Map( "maps" );
+   	var layer = new OpenLayers.Layer.MapServer( 
+            		"All together now!", 
+                 	data.mapservURL, 
+                  data.mapserverParams,
+                  options);
+		 map.addLayer(layer);
+		 map.addControl(new OpenLayers.Control.MousePosition());
+		 map.zoomToMaxExtent(); 
+	}
 
 	function makeImageLayer(name, imageObject) {
 		var w = imageObject.width;
@@ -429,18 +505,20 @@ $_SESSION['mapFile'] = $dataDir."/mapfile.map";
  	</script> 
 </head> 
 <body onload="init()"> 
-<h1>Google Summer of Code Sandbox</h1>
-<a href="https://github.com/psoots/GSOC">Source Code on Github</a>
-<div id="text"></div>
-<div id="base" class="smallmap"></div>
-<div id="sub" class="smallmap"></div>
-<button type="button" onclick="calculateWorldFile();">Calculate World File</a></button>
-<p>Currently the world file is calculated with just the first two control points</p>
-<div id="error"></div>
-<h3>Base Image Control Points</h3>
-<div id="basePoints"></div>
-<br>
-<h3>Sub Image Control Points</h3>
-<div id="subPoints"></div>
+	<h1>Google Summer of Code Sandbox</h1>
+	<a href="https://github.com/psoots/GSOC">Source Code on Github</a>
+	<div id="maps">
+		<div id="base" class="smallmap"></div>
+		<div id="sub" class="smallmap"></div>
+		<button type="button" onclick="calculateWorldFile();">Calculate World File</a></button>
+		<p>Currently the world file is calculated with just the first two control points</p>
+		<div id="error"></div>
+		<h3>Base Image Control Points</h3>
+		<div id="basePoints"></div>
+		<br>
+		<h3>Sub Image Control Points</h3>
+		<div id="subPoints"></div>
+	</div> 
+	<div id="text"></div>
 </body>
 </head>
