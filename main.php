@@ -1,3 +1,4 @@
+<?php
 /*
  * Copyright © 2011 by Peter Soots
  * 
@@ -29,7 +30,7 @@
  * 
  */
 
-<?php 
+
 session_start();
 
 // Make sure we have our images

@@ -1,3 +1,4 @@
+<?php
 /*
  * Copyright © 2011 by Peter Soots
  * 
@@ -26,8 +27,10 @@
  * the user and pass it on to main.php.
  * 
  */
-
-<?php session_start(); ?>
+ 
+ session_start(); 
+ 
+ ?>
 <!doctype html public "-//w3c//dtd html 4.0 transitional//en"> 
 <html> 
 <head> 

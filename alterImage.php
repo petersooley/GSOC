@@ -1,3 +1,4 @@
+<?php
 /*
  * Copyright © 2011 by Peter Soots
  * 
@@ -27,8 +28,6 @@
  * need to create an OpenLayers.Layer.MapServer object.
  * 
  */
-
-<?php
 session_start();
 
 // Important locations
