@@ -46,7 +46,7 @@ $dataDir = "data/";
 		
 // Get the details about the base image. We'll use these details later in the javascript.
 list($bWidth, $bHeight, $bType, $ignored) = getimagesize($_FILES['baseImage']['tmp_name']);
-$baseFile = $dataDir."base".time();
+$baseFile = $dataDir."base";
 	
 // Store the image url in a session variable and save the image to the data directory.
 switch($bType) {
@@ -78,7 +78,7 @@ $_SESSION['baseWidth'] = $bWidth;
 		
 // Get the details about the sub image. We'll use these details later in the javascript.
 list($sWidth, $sHeight, $sType, $ignored) = getimagesize($_FILES['subImage']['tmp_name']);
-$subFile = $dataDir."sub".time();
+$subFile = $dataDir."sub";
 		
 // Store the image url in a session variable and save the image to the images directory.
 switch($sType) {
@@ -126,7 +126,6 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 	<!-- Libraries -->
 	<script type="text/javascript" src="imports.js"></script> 
 	<script src="OpenLayers/lib/OpenLayers.js"></script> 
-	<!--<script src="json2.js" type="text/javascript"></script>-->
 
 	<!-- Our code -->
 	<script src="myUtil.js"></script>
@@ -337,20 +336,18 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 		// find bounds and resolution like we did before in makeImageLayer();
 		var w = data.width;
 		var h = data.height;
-		var bounds = new OpenLayers.Bounds(-(w / 2), -(h / 2), (w / 2), (h / 2));
-		var size = new OpenLayers.Size(w, h);
+		var bnds = new OpenLayers.Bounds(0, -w, h, 0);
+		var sz = new OpenLayers.Size(w, h);
 		var area = h * w;
 		var res = Math.log(area) * Math.LOG10E; // calculates base 10 of area
-		var options = { 'bounds' : bounds,
-							'maxResolution' : res,
-							'size' : size };
+		var options = { maxExtent : bnds };
 		
-		var map = new OpenLayers.Map( "maps" );
+		var map = new OpenLayers.Map( "maps", options);
    	var layer = new OpenLayers.Layer.MapServer( 
             		"All together now!", 
                  	data.mapservURL, 
-                  data.mapserverParams,
-                  options);
+                  data.mapserverParams
+               );
 		 map.addLayer(layer);
 		 map.addControl(new OpenLayers.Control.MousePosition());
 		 map.zoomToMaxExtent(); 
@@ -439,16 +436,9 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 		// Register for featureadded events
 		vectorLayer.events.register('featureadded', this, function(event) { 
 			
-			// Convert the projected points into pixels
-			// 	- set the origin from the center to the top left
-			var x = event.feature.geometry.x + 180; 
-			var y = 90 - event.feature.geometry.y;
-			//		- find the dimensions of the map unit
-			var mapUnitWidth = imageObj.width / 360;
-			var mapUnitHeight = imageObj.height / 180;
-			// 	- determine the actual pixel distance
-			x *= mapUnitWidth;
-			y *= mapUnitHeight;
+			// Change the points so the origin is at the top left rather than at the center
+			var x = event.feature.geometry.x + (imageObj.width / 2); 
+			var y = (imageObj.height / 2) - event.feature.geometry.y;
 			
 			// add point to the array
 			var p = new Point(x, y);
@@ -459,7 +449,7 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 			for(var i = 0; i < pointArray.length; ++i) {
 				string = string + "<p>Point #"+(i+1)+"	x: "+pointArray[i].x+"	y: "+pointArray[i].y +"</p>";
 			}
-			document.getElementById(outputDiv).innerHTML = string; 
+	 		document.getElementById(outputDiv).innerHTML = string; 
 		});
 	}
 	
@@ -485,10 +475,12 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 		var base = new OpenLayers.Map("base");
 		base.addLayer(baseLayer);
 		base.zoomToMaxExtent();
+		base.addControl(new OpenLayers.Control.MousePosition());
 		
 		var sub = new OpenLayers.Map("sub");
 		sub.addLayer(subLayer);
 		sub.zoomToMaxExtent();
+		sub.addControl(new OpenLayers.Control.MousePosition());
 		
 
 		/*

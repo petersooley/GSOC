@@ -28,6 +28,7 @@
  * need to create an OpenLayers.Layer.MapServer object.
  * 
  */
+ 
 session_start();
 
 // Important locations
@@ -54,7 +55,7 @@ extract($_POST); // $A, $B, $C, $D, $E, $F
 $string = $A."\n".$D."\n".$B."\n".$E."\n".$C."\n".$F."\n";
 
 $worldFile = "1\n0\n0\n-1\n0\n0\n";
-file_put_contents($_SESSION['subWorldFile'], $worldFile); // this one is temporary, of course
+file_put_contents($_SESSION['subWorldFile'], $worldFile); 
 
 // the user may one day want to associate a world file with the base image (for now, it's just a default one)
 file_put_contents($_SESSION['baseWorldFile'], $worldFile); 
