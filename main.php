@@ -184,7 +184,13 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 		this.height = height;
 	}
 
-	// returns a world file object.
+	// Calculates a world file and returns a WorldFile object. 
+	// The sub image is the one being altered to match the unaltered
+	// base image. The calculation requires height and width of both 
+	// images and two Point objects on each image: subA will be 
+	// referenced to baseA and similarly, subB to baseB. These points
+	// are in reference to a top-left origin where x and y are both 
+	// positive.
 	function writeWorldFile(subW, subH, subA, subB, baseW, baseH, baseA, baseB) {
 		/*
 		 * First we need to find the angles from the x axis starting at point A.
@@ -281,25 +287,13 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 		
 	}
 	
-	function post_to_url(url, params) {
-   	var form = document.createElement('form');
-   	form.action = url;
-   	form.method = 'POST';
+	
+	
 
-    	for (var i in params) {
-        if (params.hasOwnProperty(i)) {
-            var input = document.createElement('input');
-            input.type = 'hidden';
-         	input.name = i;
-      		input.value = params[i];
-         	form.appendChild(input);
-      	}
-   	}
-
-   	form.submit();
-	}
-
-	function calculateWorldFile() {
+	// This function is called when the user click's the 'generate' button.
+	// It calculates the world file and sends it via AJAX to alterImage.php 
+	// (which already has the images in session variables). 
+	function generate() {
 		with(global) {
 			if(subCPs.length > 1 && baseCPs.length > 1) {
 				global.worldFile = writeWorldFile(
@@ -322,6 +316,9 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 		}
 	}
 	
+	// This function handles the AJAX response that we get from alterImage.php.
+	// Basically, we are given the MapServer info needed to create an 
+	// OpenLayers.Layer.MapServer layer. 
 	function showNewMap(response) {
 		var data = JSON.parse(response);
 		
@@ -337,9 +334,10 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 		var w = data.width;
 		var h = data.height;
 		var bnds = new OpenLayers.Bounds(0, -w, h, 0);
-		var sz = new OpenLayers.Size(w, h);
-		var area = h * w;
-		var res = Math.log(area) * Math.LOG10E; // calculates base 10 of area
+		//var sz = new OpenLayers.Size(w, h);
+		//var area = h * w;
+		//var res = Math.log(area) * Math.LOG10E; // calculates base 10 of area
+	
 		var options = { maxExtent : bnds };
 		
 		var map = new OpenLayers.Map( "maps", options);
@@ -353,6 +351,7 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 		 map.zoomToMaxExtent(); 
 	}
 
+	// Turns an imageObject into a layer (used by makeMapFromImage)
 	function makeImageLayer(name, imageObject) {
 		var w = imageObject.width;
 		var h = imageObject.height;
@@ -377,12 +376,17 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 		return new OpenLayers.Layer.Image(name, imageObject.url, bounds, size, opts);
 	}
 	
+	// Turns an imageObject into a map
 	function makeMapFromImage(div, name, imageObject) {
 		var map = new OpenLayers.Map(div);
 		map.addLayer( makeImageLayer(name, imageObject) );
 		map.zoomToMaxExtent();
 		return map;
 	}
+	
+	// Adds a vector layer to mapObject as an interface that allows
+	// the user to add control points to the image. This is where
+	// we style the control points.
 	function addControlPointsLayer(mapObject, layerName) {
 		var vl = new OpenLayers.Layer.Vector(layerName);
 		mapObject.addLayer(vl);
@@ -432,6 +436,7 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 		return vl;
 	}
 	
+	// Capture user's clicks to the vectorLayer and save them in the pointArray
 	function collectPoints(vectorLayer, pointArray, outputDiv, imageObj) {
 		// Register for featureadded events
 		vectorLayer.events.register('featureadded', this, function(event) { 
@@ -454,7 +459,7 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 	}
 	
 	
-	
+	// This where it all begins from body onload.
 	function init() {
 	
 		var baseImage = new Image(
@@ -503,7 +508,7 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 	<div id="maps">
 		<div id="base" class="smallmap"></div>
 		<div id="sub" class="smallmap"></div>
-		<button type="button" onclick="calculateWorldFile();">Calculate World File</a></button>
+		<button type="button" onclick="generate();">Generate</a></button>
 		<p>Currently the world file is calculated with just the first two control points</p>
 		<div id="error"></div>
 		<h3>Base Image Control Points</h3>

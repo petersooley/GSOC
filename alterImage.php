@@ -54,8 +54,10 @@ extract($_POST); // $A, $B, $C, $D, $E, $F
 // Build the world file that we created in JavaScript
 $string = $A."\n".$D."\n".$B."\n".$E."\n".$C."\n".$F."\n";
 
+// A no-change worldfile, currently for the base image
 $worldFile = "1\n0\n0\n-1\n0\n0\n";
-file_put_contents($_SESSION['subWorldFile'], $worldFile); 
+
+file_put_contents($_SESSION['subWorldFile'], $string); 
 
 // the user may one day want to associate a world file with the base image (for now, it's just a default one)
 file_put_contents($_SESSION['baseWorldFile'], $worldFile); 
