@@ -148,7 +148,7 @@
 				for(var prop in object) 
 					document.getElementById(div).innerHTML = 
 						document.getElementById(div).innerHTML + prop + " : " + object[prop] + "<br><br>";
-			}
+			},
 		
 		/*
 		 * Send POST while skipping html altogether.
