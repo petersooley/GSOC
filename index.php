@@ -45,7 +45,7 @@
 <h1>Google Summer of Code Sandbox</h1>
 <a href="https://github.com/psoots/GSOC">Source Code on Github</a>
 <form action="main.php" method="post" enctype="multipart/form-data">
-<label for="inputBaseImage">Base Image</label>
+<label for="inputBaseImage">Base Image (not changed)</label>
 <input type="file" name="baseImage" id="inputBaseImage"/>
 <label for="inputSubImage">Sub Image</label>
 <input type="file" name="subImage" id="inputSubImage"/>

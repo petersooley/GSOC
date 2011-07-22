@@ -294,25 +294,25 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 	// It calculates the world file and sends it via AJAX to alterImage.php 
 	// (which already has the images in session variables). 
 	function generate() {
-		with(global) {
-			if(subCPs.length > 1 && baseCPs.length > 1) {
-				global.worldFile = writeWorldFile(
-															<?php echo $_SESSION['subWidth']; ?>,
-															<?php echo $_SESSION['subHeight']; ?>, 
-															subCPs[0], 
-															subCPs[1], 
-															<?php echo $_SESSION['baseWidth']; ?>,
-															<?php echo $_SESSION['baseHeight']; ?>,
-															baseCPs[0], 
-															baseCPs[1]);
+		if(global.subCPs.length > 1 && global.baseCPs.length > 1) {
+			global.worldFile = writeWorldFile(
+														<?php echo $_SESSION['subWidth']; ?>,
+														<?php echo $_SESSION['subHeight']; ?>, 
+														global.subCPs[0], 
+														global.subCPs[1], 
+														<?php echo $_SESSION['baseWidth']; ?>,
+														<?php echo $_SESSION['baseHeight']; ?>,
+														global.baseCPs[0], 
+														global.baseCPs[1]);
 				
-		 		//post_to_url("alterImage.php", worldFile.toData()); 
-		 		// we'll use AJAX instead...
-		 		myUtil.POST("alterImage.php", global.worldFile.toData(), function(response) { showNewMap(response); });
-			}
-			else {
-				document.getElementById("error").innerHTML = "<p>Oops! Not enough control points</p>";
-			}
+			
+			// Let's not change anything while we're testing
+			// global.worldFile = new WorldFile(1, 0, 0, -1, 0, 0);
+	
+			myUtil.POST("alterImage.php", global.worldFile.toData(), function(response) { showNewMap(response); });
+		}
+		else {
+			document.getElementById("error").innerHTML = "<p>Oops! Not enough control points</p>";
 		}
 	}
 	
@@ -323,6 +323,7 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 		var data = JSON.parse(response);
 		
 		document.getElementById("maps").innerHTML = "";
+		document.getElementById("maps").className = "smallmap";
 		if(data.error != undefined) {
 			document.getElementById("text").innerHTML = "error: "+ data.error;
 			return;
@@ -333,12 +334,12 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 		// find bounds and resolution like we did before in makeImageLayer();
 		var w = data.width;
 		var h = data.height;
-		var bnds = new OpenLayers.Bounds(0, -w, h, 0);
+		var bnds = new OpenLayers.Bounds(0, -h, w, 0);
 		//var sz = new OpenLayers.Size(w, h);
-		//var area = h * w;
-		//var res = Math.log(area) * Math.LOG10E; // calculates base 10 of area
+		var area = h * w;
+		var res = Math.log(area) * Math.LOG10E; // calculates base 10 of area
 	
-		var options = { maxExtent : bnds };
+		var options = { maxExtent : bnds, maxResolution: res};
 		
 		var map = new OpenLayers.Map( "maps", options);
    	var layer = new OpenLayers.Layer.MapServer( 
@@ -501,6 +502,17 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 	}
 	
  	</script> 
+ 	
+ 	<style type="text/css">
+ 		#maps {
+ 			position: relative;
+ 		}
+ 		#sidepanel {
+ 			position: absolute;
+ 			top: 0 px;
+ 			left: 520 px;
+ 		}
+ 	</style>
 </head> 
 <body onload="init()"> 
 	<h1>Google Summer of Code Sandbox</h1>
@@ -508,14 +520,16 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 	<div id="maps">
 		<div id="base" class="smallmap"></div>
 		<div id="sub" class="smallmap"></div>
-		<button type="button" onclick="generate();">Generate</a></button>
-		<p>Currently the world file is calculated with just the first two control points</p>
-		<div id="error"></div>
-		<h3>Base Image Control Points</h3>
-		<div id="basePoints"></div>
-		<br>
-		<h3>Sub Image Control Points</h3>
-		<div id="subPoints"></div>
+		<div id="sidepanel">
+			<p>Once you've made at least two control points per image, click Generate!</p>
+			<button type="button" onclick="generate();">Generate</a></button>
+			<div id="error"></div>
+			<h3>Base Image Control Points</h3>
+			<div id="basePoints"></div>
+			<br>
+			<h3>Sub Image Control Points</h3>
+			<div id="subPoints"></div>
+		</div>
 	</div> 
 	<div id="text"></div>
 </body>

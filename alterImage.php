@@ -54,15 +54,21 @@ extract($_POST); // $A, $B, $C, $D, $E, $F
 // Build the world file that we created in JavaScript
 $string = $A."\n".$D."\n".$B."\n".$E."\n".$C."\n".$F."\n";
 
-// A no-change worldfile, currently for the base image
+// For testing....
+$rotation_only = "1\n".$D."\n".$B."\n-1\n0\n0\n";
+$scaling_only = $A."\n0\n0\n".$E."\n0\n0\n";
+$translation_only = "1\n0\n0\n-1\n".$C."\n".$F."\n";
+
+// A no-change worldfile, for the base image
 $worldFile = "1\n0\n0\n-1\n0\n0\n";
 
-file_put_contents($_SESSION['subWorldFile'], $string); 
+//file_put_contents($_SESSION['subWorldFile'], $string); // original
+file_put_contents($_SESSION['subWorldFile'], $translation_only);   // testing only
 
 // the user may one day want to associate a world file with the base image (for now, it's just a default one)
 file_put_contents($_SESSION['baseWorldFile'], $worldFile); 
 
-$extent = "0 -".$_SESSION['baseWidth']." ".$_SESSION['baseHeight']." 0";
+$extent = "0 -".$_SESSION['baseHeight']." ".$_SESSION['baseWidth']." 0";
 
 $mapfile = sprintf("MAP\n");
 $mapfile .= sprintf("    %-36s %s\n", "SHAPEPATH", "'.'");
@@ -96,8 +102,10 @@ $json = array( 'mapfile' => $mapfile,
 														'layers' => 'base, sub',
 														'mode' => 'map')); 
 
-echo json_encode($json);
 /*
+
+// We need to warp the image using gdalwarp because MapServer unfortunately doesn't
+// properly support full rotations in world files.
 
 // Warp the image
 exec("/home1/petersoo/bin/gdalwarp -of GTiff sub.png alteredSub.gtiff 2>&1", $output, $return);
@@ -111,5 +119,8 @@ echo $return;
 if($return != 0) 
 	trigger_error("gdal_translate failed");
 */
+
+echo json_encode($json);
+
 
 ?>
