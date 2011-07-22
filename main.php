@@ -504,13 +504,21 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
  	</script> 
  	
  	<style type="text/css">
- 		#maps {
- 			position: relative;
- 		}
  		#sidepanel {
- 			position: absolute;
- 			top: 0 px;
- 			left: 520 px;
+ 			float: left;
+ 			margin-left: 10px;
+ 			width: 460px;
+ 		}
+ 		#originals {
+ 			float: left;
+ 		}
+ 		#genButton {
+			width: 460px;
+			text-align: center;
+ 		}
+ 		.points {
+ 			height: 170px;
+ 			overflow: auto;
  		}
  	</style>
 </head> 
@@ -518,17 +526,19 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 	<h1>Google Summer of Code Sandbox</h1>
 	<a href="https://github.com/psoots/GSOC">Source Code on Github</a>
 	<div id="maps">
-		<div id="base" class="smallmap"></div>
-		<div id="sub" class="smallmap"></div>
+		<div id="originals">
+			<div id="base" class="smallmap"></div>
+			<div id="sub" class="smallmap"></div>
+		</div>
 		<div id="sidepanel">
 			<p>Once you've made at least two control points per image, click Generate!</p>
-			<button type="button" onclick="generate();">Generate</a></button>
+			<div id="genButton"><button type="button" onclick="generate();">Generate</a></button></div>
 			<div id="error"></div>
-			<h3>Base Image Control Points</h3>
-			<div id="basePoints"></div>
+			<h2>Base Image Control Points</h2>
+			<div id="basePoints" class="points"></div>
 			<br>
-			<h3>Sub Image Control Points</h3>
-			<div id="subPoints"></div>
+			<h2>Sub Image Control Points</h2>
+			<div id="subPoints" class="points"></div>
 		</div>
 	</div> 
 	<div id="text"></div>
