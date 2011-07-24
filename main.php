@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright © 2011 by Peter Soots
+ * Copyright ï¿½ 2011 by Peter Soots
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -358,7 +358,7 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 		var bnds = new OpenLayers.Bounds(0, -h, w, 0);
 		//var sz = new OpenLayers.Size(w, h);
 		var area = h * w;
-		var res = Math.log(area) * Math.LOG10E; // calculates base 10 of area
+		var res = 1;//Math.log(area) * Math.LOG10E; // calculates base 10 of area
 	
 		var options = { maxExtent : bnds, maxResolution: res};
 		
