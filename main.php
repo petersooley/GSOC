@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright � 2011 by Peter Soots
+ * Copyright  2011 by Peter Soots
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -206,6 +206,56 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 		l("baseH: "+baseH);
 		l("baseA: "+baseA);
 		l("baseB: "+baseB);
+		 
+		// Scaling
+		///////////////////////////////////////////////////////////////////////////////
+		// To scale the image we just need to calculate the X and Y components between
+		// point A and point B in both images. To figure out how much to scale the sub
+		// image we just figure out the right ratio between the base image's components
+		// and the sub image's components.
+		var subXComponent = subA.getXComponent(subB);
+		var subYComponent = subA.getYComponent(subB);
+		var baseXComponent = baseA.getXComponent(baseB);
+		var baseYComponent = baseA.getYComponent(baseB);
+		l("subXComponent: "+subXComponent);
+		l("subYComponent: "+subYComponent);
+		l("baseXComponent: "+baseXComponent);
+		l("baseYComponent: "+baseYComponent);
+		
+		// Calculate the ratio. NOTE: Our math uses the Cartesian plane, but internet
+		// images don't, so the yScale is opposite from what you'd think it should be.
+		var xScale = baseXComponent / subXComponent;
+		var yScale = baseYComponent / subYComponent * -1;
+		l("xScale: "+xScale);
+		l("yScale: "+yScale);
+		
+		
+		// Translation 
+		////////////////////////////////////////////////////////////////////////////////////
+		// Get the X and Y of SubA. Once we place the origin of the sub image onto BaseA
+		// we'll need to "move back" so that SubA is on BaseA. But now that we're working in 
+		// the base image's space, we need to use its scaling.
+		
+		var origin = new Point(0,0);
+		l("x: "+origin.getXComponent(subA));
+		l("y: "+origin.getYComponent(subA));
+		var moveX = origin.getXComponent(subA) * xScale;
+		var moveY = origin.getYComponent(subA) * yScale; 
+		// No matter what, we need to move up and to the left. 
+		if(moveX < 0) moveX *= -1;
+		if(moveY > 0) moveY *= -1;
+		l("moveX: "+moveX);
+		l("moveY: "+moveY);
+		 
+		// If we place the sub image so that it's origin is on BaseA, we then need to counter
+		// that movement by moving SubA back to its origin. So, get the X and Y of BaseA and
+		// subtract the X and Y of SubA (in the base image's scaling).
+		var upperleftX = origin.getXComponent(baseA) - moveX;
+		var upperleftY = origin.getYComponent(baseA) - moveY;
+		l("upperleftX: "+upperleftX);
+		l("upperleftY: "+upperleftY);
+		
+		
 		/*
 		 * First we need to find the angles from the x axis starting at point A.
 		 * To do this, we need the x and y components between the points and then we
@@ -221,36 +271,11 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 		 * Then, we just need to calculate the top left coordinates for lines C and F.
 		 */
 		 
-		/*
-		 * Get the components of the line from A to B for the sub and base images.
-		 */
-		var subXComponent = subA.getXComponent(subB);
-		var subYComponent = subA.getYComponent(subB);
-		var baseXComponent = baseA.getXComponent(baseB);
-		var baseYComponent = baseA.getYComponent(baseB);
-		l("subXComponent: "+subXComponent);
-		l("subYComponent: "+subYComponent);
-		l("baseXComponent: "+baseXComponent);
-		l("baseYComponent: "+baseYComponent);
-		
-		/*
-		 * We can determine how much we need to scale the sub image by looking at the 
-		 * components between point A and B. These are the world file lines A and E.
-		 * If these end up negative or positive, that's fine because that will flip the
-		 * image appropriately.
-		 */
-		var xScale = baseXComponent / subXComponent;
-		var yScale = baseYComponent / subYComponent;
-		l("xScale: "+xScale);
-		l("yScale: "+yScale);
-		
-		/*
-		 * Find the angles for the AB line.
-		 */
-		var subAngle = Math.atan(subYComponent / subXComponent);
-		var baseAngle = Math.atan(baseYComponent / baseXComponent);
-		l("subAngle: "+subAngle);
-		l("baseAngle: "+baseAngle);
+		// Find the angles for the AB line.
+		//var subAngle = Math.atan(subYComponent / subXComponent);
+		//var baseAngle = Math.atan(baseYComponent / baseXComponent);
+		//l("subAngle: "+subAngle);
+		//l("baseAngle: "+baseAngle);
 		
 		/*
 		 * The angle of rotation is how much we need to rotate the sub image
@@ -261,36 +286,20 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 		 * quadrant to work in. However, we have to be careful that negative
 		 * angles are subtracted correctly.
 		 */
-		var angleOfRotation;
-		if((xScale < 0 || yScale < 0) && !(xScale < 0 && yScale < 0))
-			angleOfRotation = baseAngle + subAngle; // one of the angles is negative
-		else
-			angleOfRotation = baseAngle - subAngle; // the angles are either both pos. or both neg.
-		l("angleOfRotation: "+angleOfRotation);
+		//var angleOfRotation;
+		//if((xScale < 0 || yScale < 0) && !(xScale < 0 && yScale < 0))
+		//	angleOfRotation = baseAngle + subAngle; // one of the angles is negative
+		//else
+		//	angleOfRotation = baseAngle - subAngle; // the angles are either both pos. or both neg.
+		//l("angleOfRotation: "+angleOfRotation);
 		
-		/*
-		 * Calculate lines B and D using trig.
-		 */
-		ySkew = xScale * Math.tan(angleOfRotation);
-		xSkew = yScale * Math.tan(angleOfRotation);
-		l("xSkew: "+xSkew);
-		l("ySkew: "+ySkew);
-		
-		// Translation 
-		////////////////////////////////////////////////////////////////////////////////////
-		// Get the X and Y of SubA. Once we place the origin of the sub image onto BaseA
-		// we'll need to "move back" so that SubA is on BaseA. But now that we're working in 
-		// the base image's space, we need to use its scaling.
-		
-		var origin = new Point(0,0);
-		var moveX = origin.getXComponent(subA) * xScale;
-		var moveY = origin.getYComponent(subA) * yScale; // Will and should be negative
-		 
-		// If we place the sub image so that it's origin is on BaseA, we then need to counter
-		// that movement by moving SubA back to its origin. So, get the X and Y of BaseA and
-		// subtract the X and Y of SubA (in the base image's scaling).
-		var upperleftX = origin.getXComponent(baseA) - moveX;
-		var upperleftY = origin.getYComponent(baseA) - moveY;
+		// Calculate lines B and D using trig.
+	   //ySkew = xScale * Math.tan(angleOfRotation);
+		//xSkew = yScale * Math.tan(angleOfRotation);
+		//l("xSkew: "+xSkew);
+		//l("ySkew: "+ySkew);
+		var ySkew = 0; 
+		var xSkew = 0;
 
 		return new WorldFile(xScale, ySkew, xSkew, yScale, upperleftX, upperleftY);
 		
@@ -358,7 +367,7 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 		var bnds = new OpenLayers.Bounds(0, -h, w, 0);
 		//var sz = new OpenLayers.Size(w, h);
 		var area = h * w;
-		var res = 1;//Math.log(area) * Math.LOG10E; // calculates base 10 of area
+		var res = Math.log(area) * Math.LOG10E; // calculates base 10 of area
 	
 		var options = { maxExtent : bnds, maxResolution: res};
 		

@@ -58,12 +58,13 @@ $string = $A."\n".$D."\n".$B."\n".$E."\n".$C."\n".$F."\n";
 $rotation_only = "1\n".$D."\n".$B."\n-1\n0\n0\n";
 $scaling_only = $A."\n0\n0\n".$E."\n0\n0\n";
 $translation_only = "1\n0\n0\n-1\n".$C."\n".$F."\n";
+$scale_trans_only = $A."\n0\n0\n".$E."\n".$C."\n".$F."\n";
 
 // A no-change worldfile, for the base image
 $worldFile = "1\n0\n0\n-1\n0\n0\n";
 
 //file_put_contents($_SESSION['subWorldFile'], $string); // original
-file_put_contents($_SESSION['subWorldFile'], $translation_only);   // testing only, removed eventually
+file_put_contents($_SESSION['subWorldFile'], $scale_trans_only);   // testing only, removed eventually
 
 // the user may one day want to associate a world file with the base image (for now, it's just a default one)
 file_put_contents($_SESSION['baseWorldFile'], $worldFile); 
