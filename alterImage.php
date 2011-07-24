@@ -63,7 +63,7 @@ $translation_only = "1\n0\n0\n-1\n".$C."\n".$F."\n";
 $worldFile = "1\n0\n0\n-1\n0\n0\n";
 
 //file_put_contents($_SESSION['subWorldFile'], $string); // original
-file_put_contents($_SESSION['subWorldFile'], $translation_only);   // testing only
+file_put_contents($_SESSION['subWorldFile'], $translation_only);   // testing only, removed eventually
 
 // the user may one day want to associate a world file with the base image (for now, it's just a default one)
 file_put_contents($_SESSION['baseWorldFile'], $worldFile); 

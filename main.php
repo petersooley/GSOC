@@ -177,11 +177,17 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 	Point.prototype.clone = function () {
 		return new Point(this.x, this.y);
 	}
+	Point.prototype.toString = function() {
+		return this.x+", "+this.y;
+	}
 
 	function Image(url, width, height) {
 		this.url = url;
 		this.width = width;
 		this.height = height;
+	}
+	function l(msg) { 
+		document.getElementById('log').innerHTML += "<p>"+msg+"</p>";
 	}
 
 	// Calculates a world file and returns a WorldFile object. 
@@ -192,6 +198,14 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 	// are in reference to a top-left origin where x and y are both 
 	// positive.
 	function writeWorldFile(subW, subH, subA, subB, baseW, baseH, baseA, baseB) {
+		l("subW: "+subW); 
+		l("subH: "+subH);
+		l("subA: "+subA);
+		l("subB: "+subB);
+		l("baseW: "+baseW);
+		l("baseH: "+baseH);
+		l("baseA: "+baseA);
+		l("baseB: "+baseB);
 		/*
 		 * First we need to find the angles from the x axis starting at point A.
 		 * To do this, we need the x and y components between the points and then we
@@ -214,6 +228,10 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 		var subYComponent = subA.getYComponent(subB);
 		var baseXComponent = baseA.getXComponent(baseB);
 		var baseYComponent = baseA.getYComponent(baseB);
+		l("subXComponent: "+subXComponent);
+		l("subYComponent: "+subYComponent);
+		l("baseXComponent: "+baseXComponent);
+		l("baseYComponent: "+baseYComponent);
 		
 		/*
 		 * We can determine how much we need to scale the sub image by looking at the 
@@ -223,12 +241,17 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 		 */
 		var xScale = baseXComponent / subXComponent;
 		var yScale = baseYComponent / subYComponent;
+		l("xScale: "+xScale);
+		l("yScale: "+yScale);
 		
 		/*
 		 * Find the angles for the AB line.
 		 */
 		var subAngle = Math.atan(subYComponent / subXComponent);
 		var baseAngle = Math.atan(baseYComponent / baseXComponent);
+		l("subAngle: "+subAngle);
+		l("baseAngle: "+baseAngle);
+		
 		/*
 		 * The angle of rotation is how much we need to rotate the sub image
 		 * to fit on the base image. This will help us determine lines B and D
@@ -243,47 +266,33 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 			angleOfRotation = baseAngle + subAngle; // one of the angles is negative
 		else
 			angleOfRotation = baseAngle - subAngle; // the angles are either both pos. or both neg.
+		l("angleOfRotation: "+angleOfRotation);
 		
 		/*
 		 * Calculate lines B and D using trig.
 		 */
 		ySkew = xScale * Math.tan(angleOfRotation);
 		xSkew = yScale * Math.tan(angleOfRotation);
+		l("xSkew: "+xSkew);
+		l("ySkew: "+ySkew);
 		
-		/*
-		 * Find the top left point of the sub image within the base image. To
-		 * do this, find the distance from point A in the sub image to its 
-		 * upper left corner but with the pixels scaled to the size of the
-		 * base image's pixels. Keep in mind that the upper left corner could
-		 * truly be any of the corners after the rotation, but we want the 
-		 * nominal origin from which the affine translation can do it's work.
-		 * We need the angle that the line from A to the origin makes with the
-		 * x-axis. Then we need to add the rotation angle to that angle. This
-		 * gives us a complete angle and a distance that we can apply to  
-		 * point A in the base image to get the final coordinate of the sub 
-		 * image's origin placed on the base image.
-		 *
-		 *
-		 * NEEDS TESTING! MAY NOT BE WORKING PROPERLY!
-		 */
-		 var origin = new Point(0,0);
-		 var x = origin.getXComponent(subA);
-		 var y = origin.getYComponent(subA); // It's a negative component, but we'll square it.
+		// Translation 
+		////////////////////////////////////////////////////////////////////////////////////
+		// Get the X and Y of SubA. Once we place the origin of the sub image onto BaseA
+		// we'll need to "move back" so that SubA is on BaseA. But now that we're working in 
+		// the base image's space, we need to use its scaling.
+		
+		var origin = new Point(0,0);
+		var moveX = origin.getXComponent(subA) * xScale;
+		var moveY = origin.getYComponent(subA) * yScale; // Will and should be negative
 		 
-		 var distance = Math.sqrt( 
-		 						Math.pow(x * Math.abs(xScale), 2) + 
-		 						Math.pow(y * Math.abs(yScale), 2) ); // pythagorean 
-		
-		var angle = angleOfRotation + Math.tan(y/x);
-		
-		var xComponent = distance * Math.cos(angle);
-		var yComponent = distance * Math.sin(angle);
-			
-		var temp = baseA.clone();
-		var upperLeftX = temp.moveXDirection(xComponent);
-		var upperLeftY = temp.moveYDirection(yComponent);
+		// If we place the sub image so that it's origin is on BaseA, we then need to counter
+		// that movement by moving SubA back to its origin. So, get the X and Y of BaseA and
+		// subtract the X and Y of SubA (in the base image's scaling).
+		var upperleftX = origin.getXComponent(baseA) - moveX;
+		var upperleftY = origin.getYComponent(baseA) - moveY;
 
-		return new WorldFile(xScale, ySkew, xSkew, yScale, upperLeftX, upperLeftY);
+		return new WorldFile(xScale, ySkew, xSkew, yScale, upperleftX, upperleftY);
 		
 	}
 	
@@ -320,15 +329,27 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 	// Basically, we are given the MapServer info needed to create an 
 	// OpenLayers.Layer.MapServer layer. 
 	function showNewMap(response) {
-		var data = JSON.parse(response);
-		
+		// Clear the old maps
 		document.getElementById("maps").innerHTML = "";
+
+		// Try to get the php response
+		try {
+			var data = JSON.parse(response);
+		}catch(err) {
+			document.write("PHP ERROR");
+			return;
+		}
+		
+		// Style the viewport
 		document.getElementById("maps").className = "smallmap";
+		
+		// Check for errors in the php (not syntax errors)
 		if(data.error != undefined) {
 			document.getElementById("text").innerHTML = "error: "+ data.error;
 			return;
 		} 
 		
+		// Show the mapfile
 		document.getElementById("text").innerHTML = "<pre>"+data.mapfile+"</pre>";
 		
 		// find bounds and resolution like we did before in makeImageLayer();
@@ -520,11 +541,18 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
  			height: 170px;
  			overflow: auto;
  		}
+ 		#errors {
+ 			color: red;
+ 			font-size: 16;
+ 		}
+ 		
  	</style>
 </head> 
 <body onload="init()"> 
 	<h1>Google Summer of Code Sandbox</h1>
 	<a href="https://github.com/psoots/GSOC">Source Code on Github</a>
+	<div id="errors"></div>
+	<div id="log"></div>
 	<div id="maps">
 		<div id="originals">
 			<div id="base" class="smallmap"></div>
