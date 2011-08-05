@@ -55,7 +55,7 @@ extract($_POST); // $A, $B, $C, $D, $E, $F
 $string = $A."\n".$D."\n".$B."\n".$E."\n".$C."\n".$F."\n";
 
 // For testing....
-$rotation_only = "1\n".$D."\n".$B."\n-1\n0\n0\n";
+$rotation_only = $A."\n".$D."\n".$B."\n".$E."\n0\n0\n";
 $scaling_only = $A."\n0\n0\n".$E."\n0\n0\n";
 $translation_only = "1\n0\n0\n-1\n".$C."\n".$F."\n";
 $scale_trans_only = $A."\n0\n0\n".$E."\n".$C."\n".$F."\n";
@@ -63,8 +63,11 @@ $scale_trans_only = $A."\n0\n0\n".$E."\n".$C."\n".$F."\n";
 // A no-change worldfile, for the base image
 $worldFile = "1\n0\n0\n-1\n0\n0\n";
 
-//file_put_contents($_SESSION['subWorldFile'], $string); // original
-file_put_contents($_SESSION['subWorldFile'], $scale_trans_only);   // testing only, removed eventually
+// save all of the sub world files to disk
+foreach($_SESSION['subWorldFiles'] as $wf) {
+	//file_put_contents($_SESSION['subWorldFile'], $string); // original
+	file_put_contents($wf, $scale_trans_only);   // currently not doing rotation yet
+}
 
 // the user may one day want to associate a world file with the base image (for now, it's just a default one)
 file_put_contents($_SESSION['baseWorldFile'], $worldFile); 
@@ -85,12 +88,15 @@ $mapfile .= sprintf("        %-32s %s\n", "STATUS", "DEFAULT");
 $mapfile .= sprintf("        %-32s %s\n", "TYPE", "RASTER");
 $mapfile .= sprintf("    END\n");
 $mapfile .= sprintf("\n");
-$mapfile .= sprintf("    LAYER\n");
-$mapfile .= sprintf("        %-32s %s\n", "NAME", "'sub'");
-$mapfile .= sprintf("        %-32s %s\n", "DATA", "'".$baseURL.$_SESSION['subImage']."'");
-$mapfile .= sprintf("        %-32s %s\n", "STATUS", "DEFAULT");
-$mapfile .= sprintf("        %-32s %s\n", "TYPE", "RASTER");
-$mapfile .= sprintf("    END\n");
+for($i = 0; $i < $_SESSION['subCount']; ++$i) {
+	$mapfile .= sprintf("    LAYER\n");
+	$mapfile .= sprintf("        %-32s %s\n", "NAME", "'".$_SESSION['subName'].$i."'");
+	$mapfile .= sprintf("        %-32s %s\n", "DATA", "'".$baseURL.$_SESSION['subImages'][$i]."'");
+	$mapfile .= sprintf("        %-32s %s\n", "STATUS", "DEFAULT");
+	$mapfile .= sprintf("        %-32s %s\n", "TYPE", "RASTER");
+	$mapfile .= sprintf("    END\n");
+	$mapfile .= sprintf("\n");
+}
 $mapfile .= sprintf("END\n");
 
 file_put_contents($_SESSION['mapFile'], $mapfile);

@@ -30,6 +30,11 @@
  
  session_start(); 
  
+ $_SESSION['subImages'] = array();
+ $_SESSION['subWorldFiles'] = array();
+ $_SESSION['subCount'] = 0;
+
+ 
  ?>
 <!doctype html public "-//w3c//dtd html 4.0 transitional//en"> 
 <html> 
