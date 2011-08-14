@@ -78,35 +78,35 @@ $_SESSION['baseWidth'] = $bWidth;
 		
 // Get the details about the sub image. We'll use these details later in the javascript.
 list($sWidth, $sHeight, $sType, $ignored) = getimagesize($_FILES['subImage']['tmp_name']);
-$_SESSION['subName'] = "sub";
-$subFile = $dataDir.$_SESSION['subName'].$_SESSION['subCount'];
+$subFile = $dataDir."sub";
 		
 // Store the image url in a session variable and save the image to the images directory.
 switch($sType) {
 	case IMAGETYPE_GIF:
-		$subImage = $subFile.".gif";
-		array_push($_SESSION['subWorldFiles'], $subFile.".gwf");
-		array_push($_SESSION['subImages'], $subImage);
-		imagegif(imagecreatefromgif($_FILES['subImage']['tmp_name']), $subImage);
+		$_SESSION['subType'] = "GIF";
+		$_SESSION['subImage'] = $subFile.".gif";
+		$_SESSION['subWorldFile'] = $subFile.".gwf";
+		imagegif(imagecreatefromgif($_FILES['subImage']['tmp_name']), $_SESSION['subImage']);
 		break;
 	case IMAGETYPE_JPEG:
-		$subImage = $subFile.".jpg";
-		array_push($_SESSION['subWorldFiles'], $subFile.".jgw");
-		array_push($_SESSION['subImages'], $subImage);
-		imagejpeg(imagecreatefromjpeg($_FILES['subImage']['tmp_name']), $subImage);
+		$_SESSION['subType'] = "JPEG";	
+		$_SESSION['subImage'] = $subFile.".jpg";
+		$_SESSION['subWorldFile'] = $subFile.".jgw";
+		imagejpeg(imagecreatefromjpeg($_FILES['subImage']['tmp_name']), $_SESSION['subImage']);	
 		break;
 	case IMAGETYPE_PNG:
-		$subImage = $subFile.".png";
-		array_push($_SESSION['subWorldFiles'], $subFile.".pgw");
-		array_push($_SESSION['subImages'], $subImage);
-		imagepng(imagecreatefrompng($_FILES['subImage']['tmp_name']), $subImage);	
+		$_SESSION['subType'] = "PNG";	
+		$_SESSION['subImage'] = $subFile.".png";
+		$_SESSION['subWorldFile'] = $subFile.".pgw";
+		$image = imagecreatefrompng($_FILES['subImage']['tmp_name']);
+		imagepng($image, $_SESSION['subImage']);	
+		imagedestroy($image);
 		break;
 }
 
 // Save data in Session
 $_SESSION['subHeight'] = $sHeight;
 $_SESSION['subWidth'] = $sWidth;
-$_SESSION['subCount'] = $_SESSION['subCount'] + 1;
 
 // While we're in the middle of making files, let's go ahead and make the MapFile too.
 $_SESSION['mapFile'] = $dataDir."mapfile.map";
@@ -139,7 +139,7 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 	// E: y scale (negative is the normative value)
 	// C: Upperleft X coordinate
 	// F: Upperleft Y coordinate
-	// D & B: rotation...these are complicated, look at wikipedia
+	// D & B: ...these are complicated, look at wikipedia
 	function WorldFile(A, D, B, E, C, F) {
 		this.A = A;
 		this.D = D;
@@ -205,14 +205,14 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 	// are in reference to a top-left origin where x and y are both 
 	// positive.
 	function writeWorldFile(subW, subH, subA, subB, baseW, baseH, baseA, baseB) {
-		//l("subW: "+subW); 
-		//l("subH: "+subH);
-		//l("subA: "+subA);
-		//l("subB: "+subB);
-		//l("baseW: "+baseW);
-		//l("baseH: "+baseH);
-		//l("baseA: "+baseA);
-		//l("baseB: "+baseB);
+		l("subW: "+subW); 
+		l("subH: "+subH);
+		l("subA: "+subA);
+		l("subB: "+subB);
+		l("baseW: "+baseW);
+		l("baseH: "+baseH);
+		l("baseA: "+baseA);
+		l("baseB: "+baseB);
 		 
 		// Scaling
 		///////////////////////////////////////////////////////////////////////////////
@@ -224,17 +224,17 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 		var subYComponent = subA.getYComponent(subB);
 		var baseXComponent = baseA.getXComponent(baseB);
 		var baseYComponent = baseA.getYComponent(baseB);
-		//l("subXComponent: "+subXComponent);
-		//l("subYComponent: "+subYComponent);
-		//l("baseXComponent: "+baseXComponent);
-		//l("baseYComponent: "+baseYComponent);
+		l("subXComponent: "+subXComponent);
+		l("subYComponent: "+subYComponent);
+		l("baseXComponent: "+baseXComponent);
+		l("baseYComponent: "+baseYComponent);
 		
 		// Calculate the ratio. NOTE: Our math uses the Cartesian plane, but internet
 		// images don't, so the yScale is opposite from what you'd think it should be.
 		var xScale = baseXComponent / subXComponent;
 		var yScale = baseYComponent / subYComponent * -1;
-		//l("xScale: "+xScale);
-		//l("yScale: "+yScale);
+		l("xScale: "+xScale);
+		l("yScale: "+yScale);
 		
 		
 		// Translation 
@@ -244,25 +244,23 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 		// the base image's space, we need to use its scaling.
 		
 		var origin = new Point(0,0);
-		//l("x: "+origin.getXComponent(subA));
-		//l("y: "+origin.getYComponent(subA));
+		l("x: "+origin.getXComponent(subA));
+		l("y: "+origin.getYComponent(subA));
 		var moveX = origin.getXComponent(subA) * xScale;
 		var moveY = origin.getYComponent(subA) * yScale; 
 		// No matter what, we need to move up and to the left. 
 		if(moveX < 0) moveX *= -1;
 		if(moveY > 0) moveY *= -1;
-		//l("moveX: "+moveX);
-		//l("moveY: "+moveY);
+		l("moveX: "+moveX);
+		l("moveY: "+moveY);
 		 
 		// If we place the sub image so that it's origin is on BaseA, we then need to counter
 		// that movement by moving SubA back to its origin. So, get the X and Y of BaseA and
 		// subtract the X and Y of SubA (in the base image's scaling).
 		var upperleftX = origin.getXComponent(baseA) - moveX;
 		var upperleftY = origin.getYComponent(baseA) - moveY;
-		//l("upperleftX: "+upperleftX);
-		//l("upperleftY: "+upperleftY);
-		
-		/* Skipping rotation for now
+		l("upperleftX: "+upperleftX);
+		l("upperleftY: "+upperleftY);
 		
 		// Rotation
 		////////////////////////////////////////////////////////////////////////// 
@@ -274,53 +272,31 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 		// already calculated. It makes the math really simple.
 		var subAngle = Math.atan(subYComponent / subXComponent);
 		var baseAngle = Math.atan(baseYComponent / baseXComponent);
-		l("subAngle (degrees): "+(subAngle * (180 / Math.PI)));
-		l("baseAngle (degrees): "+(baseAngle*(180 / Math.PI)));
+		l("subAngle: "+(subAngle * (180 / Math.PI)));
+		l("baseAngle: "+(baseAngle*(180 / Math.PI)));
 		
-		
-		// The angle of rotation is how much we need to rotate the sub image
-		// to fit on the base image. This will help us determine lines B and D
-		// of the world file. We can figure out the rotation by doing a simple
-		// subtraction because all the hard work of angle geometry is solved 
-		// when the xScale and yScale flip the image leaving us with just one
-		// quadrant to work in. However, we have to be careful that negative
-		// angles are subtracted correctly.
-		
+		/*
+		 * The angle of rotation is how much we need to rotate the sub image
+		 * to fit on the base image. This will help us determine lines B and D
+		 * of the world file. We can figure out the rotation by doing a simple
+		 * subtraction because all the hard work of angle geometry is solved 
+		 * when the xScale and yScale flip the image leaving us with just one
+		 * quadrant to work in. However, we have to be careful that negative
+		 * angles are subtracted correctly.
+		 */
 		var angleOfRotation;
 		if((xScale < 0 || yScale < 0) && !(xScale < 0 && yScale < 0))
 			angleOfRotation = baseAngle + subAngle; // one of the angles is negative
 		else
 			angleOfRotation = baseAngle - subAngle; // the angles are either both pos. or both neg.
-		l("angleOfRotation (degrees): "+(angleOfRotation * (180 / Math.PI)));
+		l("angleOfRotation: "+angleOfRotation);
 		
-		
-		// Now that we're doing rotation, we need to rethink the xScale and yScale 
-		// variables, lines A and E. So far, these variables have simply represented
-		// the pixel width and height.
-		var pixelWidth = xScale;
-		var pixelHeight = yScale;
-		l("pixelWidth: "+pixelWidth);
-		l("pixelHeight: "+pixelHeight);
-		
-		// But with rotation, pixel width and height aren't needed in the world file. 
-		// Instead lines A and E represent the x and y components of the rotated pixel, 
-		// respectively.
-		xScale = pixelHeight * Math.cos(angleOfRotation);
-		yScale = pixelWidth * Math.cos(angleOfRotation);
-		l("xScale: "+xScale);
-		l("yScale: "+yScale);
-		
-		// Lastly, the xSkew and ySkew variables in the world file, lines B and D, 
-		// are the other components of the rotated pixel. ySkew is the y component
-		// of the pixelWidth and the xSkew is the x component of the pixelHeight.
-		var ySkew = pixelWidth * Math.sin(angleOfRotation);
-		var xSkew = pixelHeight * Math.sin(angleOfRotation);
+		// Calculate lines B and D using trig.
+		ySkew = xScale * Math.tan(angleOfRotation);
+		xSkew = yScale * Math.tan(angleOfRotation);
 		l("xSkew: "+xSkew);
 		l("ySkew: "+ySkew);
-		
-		*/
-		var xSkew = 0;
-		var ySkew = 0;
+
 
 		return new WorldFile(xScale, ySkew, xSkew, yScale, upperleftX, upperleftY);
 		
@@ -343,7 +319,7 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 														<?php echo $_SESSION['baseHeight']; ?>,
 														global.baseCPs[0], 
 														global.baseCPs[1]);
-			global.worldFile.display("worldfile");
+			
 			myUtil.POST("alterImage.php", global.worldFile.toData(), function(response) { showNewMap(response); });
 		}
 		else {
@@ -362,7 +338,7 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 		try {
 			var data = JSON.parse(response);
 		}catch(err) {
-			document.write("PHP ERROR: "+response);
+			document.write("PHP ERROR");
 			return;
 		}
 		
@@ -516,7 +492,7 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 			<?php echo($_SESSION['baseHeight']); ?>
 		);
 		var subImage = new Image(
-			"<?php echo($subImage); ?>",
+			"<?php echo($_SESSION['subImage']); ?>",
 			<?php echo($_SESSION['subWidth']); ?>,
 			<?php echo($_SESSION['subHeight']); ?>
 		);
@@ -578,6 +554,7 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 	<h1>Google Summer of Code Sandbox</h1>
 	<a href="https://github.com/psoots/GSOC">Source Code on Github</a>
 	<div id="errors"></div>
+	<div id="log"></div>
 	<div id="maps">
 		<div id="originals">
 			<div id="base" class="smallmap"></div>
@@ -594,8 +571,6 @@ $_SESSION['mapFile'] = $dataDir."mapfile.map";
 			<div id="subPoints" class="points"></div>
 		</div>
 	</div> 
-	<div id="log"></div>
-	<div id="worldfile"></div>
 	<div id="text"></div>
 </body>
 </head>

@@ -86,6 +86,11 @@ function Image(url, width, height) {
 	this.height = height;
 }
 
+// This is a temporary debugging function.
+function l(msg) { 
+	document.getElementById('log').innerHTML += "<p>"+msg+"</p>";
+}
+
 // Calculates a world file and returns a WorldFile object. 
 // The sub image is the one being altered to match the unaltered
 // base image. The calculation requires height and width of both 
@@ -93,7 +98,11 @@ function Image(url, width, height) {
 // referenced to baseA and similarly, subB to baseB. These points
 // are in reference to a top-left origin where x and y are both 
 // positive.
-function writeWorldFile(subW, subH, subA, subB, baseW, baseH, baseA, baseB) {
+function writeWorldFile(subImage, subA, subB, baseImage, baseA, baseB) {
+	var subW = subImage.width;
+	var subH = subImage.height;
+	var baseW = baseImage.width;
+	var baseH = baseImage.height;
 	//l("subW: "+subW); 
 	//l("subH: "+subH);
 	//l("subA: "+subA);
