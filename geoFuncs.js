@@ -55,6 +55,16 @@ WorldFile.prototype.toData = function() {
 				"F": this.F };
 }
 
+// Compute the average of this world file with the given worldfile
+WorldFile.prototype.average = function(wf) {
+	this.A = (wf.A * this.A) / 2;
+	this.D = (wf.D * this.D) / 2;
+	this.B = (wf.D * this.B) / 2;
+	this.E = (wf.E * this.E) / 2;
+	this.C = (wf.C * this.C) / 2;
+	this.F = (wf.F * this.F) / 2;
+}
+
 function Point(x, y) {
 	this.x = x;
 	this.y = y;

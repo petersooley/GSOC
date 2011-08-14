@@ -59,10 +59,6 @@ getOpenLayersHeader();
 		collectPoints(baseCPLayer, baseCPs, "basePoints", baseImage);
 		collectPoints(subCPLayer, subCPs, "subPoints", subImage);
 		
-		function blah(param) {
-			this.variable = param;
-		}
-		
 		document.getElementById('genButton').addEventListener("click", function(e) {
 			if(baseCPs.length < 2 || subCPs.length < 2) 
 				document.getElementById('errors').innerHTML = "You need at least two control points.";
