@@ -16,17 +16,17 @@ $sub->width = $w;
 switch($type) {
 	case IMAGETYPE_GIF:
 		$sub->url = $subFile.".gif";
-		$sub->worldfileUrl = $subFile.".gwf";
+		$sub->worldFileUrl = $subFile.".gwf";
 		imagegif(imagecreatefromgif($_FILES['subImage']['tmp_name']), $sub->url);
 		break;
 	case IMAGETYPE_JPEG:
 		$sub->url = $subFile.".jpg";
-		$sub->worldfileUrl = $subFile.".jgw";
+		$sub->worldFileUrl = $subFile.".jgw";
 		imagejpeg(imagecreatefromjpeg($_FILES['subImage']['tmp_name']), $sub->url);
 		break;
 	case IMAGETYPE_PNG:
 		$sub->url = $subFile.".png";
-		$sub->worldfileUrl = $subFile.".pgw";
+		$sub->worldFileUrl = $subFile.".pgw";
 		imagepng(imagecreatefrompng($_FILES['subImage']['tmp_name']), $sub->url);	
 }
 

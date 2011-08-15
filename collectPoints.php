@@ -77,7 +77,6 @@ getOpenLayersHeader();
 					wf.average(writeWorldFile(subImage, subCPs[j], subCPs[k], baseImage, baseCPs[j], baseCPs[k]));
 				}
 			}
-			wf.display('worldfile');
 			var params = wf.toData();
 			params.state = "gotWorldFile";
 		
@@ -96,7 +95,7 @@ getOpenLayersHeader();
 		<div id="sub" class="smallmap"></div>
 	</div>
 	<div id="sidepanel">
-		<p>Once you've made at least two control points per image, click Generate!</p>
+		<p>Once you've made at least two control points per image, click generate.</p>
 		<div id="genButton"><button type="button">Generate</a></button></div>
 		<div id="error"></div>
 		<h2>Base Image Control Points</h2>
