@@ -153,7 +153,7 @@
 		/*
 		 * Send POST while skipping html altogether.
 		 */
-		post_to_url:
+		postToUrl:
 			function (url, params) {
    			var form = document.createElement('form');
    			form.action = url;

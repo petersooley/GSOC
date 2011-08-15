@@ -46,7 +46,9 @@ class Image {
 	public $height;
 	public $width;
 	public $url;
+	public $worldFileUrl;
 	public $worldFile;
+	public $layerName;
 }
 
 // Functions for HTML
@@ -74,6 +76,7 @@ function getOpenLayersHeader() {?>
 	<script type="text/javascript" src="imports.js"></script> 
 	<script src="OpenLayers/lib/OpenLayers.js"></script>	
 	<script src="geoFuncs.js"></script>
+	<script src="myUtil.js"></script>
 	
 	<style type="text/css">
 		.smallmap {
@@ -86,7 +89,7 @@ function getOpenLayersHeader() {?>
 			margin-left: 10px;
 			width: 460px;
 		}
-		#originals {
+		#maps {
 			float: left;
 		}
 		#genButton {
@@ -135,7 +138,7 @@ switch($_POST['state']) {
 	// #5 Nice control points! We'll create the MapServer data and show 
 	// you the results.
 	case 'gotWorldFile':	
-		include 'alterImage.php';
+		include 'displayResults.php';
 		
 	// Do you want to add another sub image? Go to #3. 
 	

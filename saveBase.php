@@ -13,17 +13,17 @@ $base->width = $w;
 switch($type) {
 	case IMAGETYPE_GIF:
 		$base->url = $baseFile.".gif";
-		$base->worldfile = $baseFile.".gfw";
+		$base->worldfileUrl = $baseFile.".gfw";
 		imagegif(imagecreatefromgif($_FILES['baseImage']['tmp_name']), $base->url);
 		break;
 	case IMAGETYPE_JPEG:
 		$base->url = $baseFile.".jpg";
-		$base->worldfile = $baseFile.".jgw";
+		$base->worldfileUrl = $baseFile.".jgw";
 		imagejpeg(imagecreatefromjpeg($_FILES['baseImage']['tmp_name']), $base->url);	
 		break;
 	case IMAGETYPE_PNG:
 		$base->url = $baseFile.".png";
-		$base->worldfile = $baseFile.".pgw";		
+		$base->worldfileUrl = $baseFile.".pgw";		
 		imagepng(imagecreatefrompng($_FILES['baseImage']['tmp_name']), $base->url);
 		break;
 }

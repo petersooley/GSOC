@@ -38,9 +38,9 @@ The technologies used are:
 	</ul>
 </p>
 <p>
-To get started, you need a base image (typically of the highest resolution).
+To get started, you need a base image (typically of the lowest resolution).
 This will not be <i>changed</i>. That is, all other images will be scaled and
-translated onto this one image. Later, you will add as many (lower resolution) 
+translated onto this one image. Later, you will add as many (higher resolution) 
 images that you want and carefully place them onto this one base image.
 </p>
 <form action="index.php" method="post" enctype="multipart/form-data">

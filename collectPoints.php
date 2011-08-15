@@ -14,7 +14,7 @@ getOpenLayersHeader();
 ?>
 	<script type="text/javascript">
 	
-	// This where it all begins from body onload.
+	// This is where it all begins from body onload.
 	function init() {
 		
 		var baseImage = new Image( 
@@ -63,10 +63,25 @@ getOpenLayersHeader();
 			if(baseCPs.length < 2 || subCPs.length < 2) 
 				document.getElementById('errors').innerHTML = "You need at least two control points.";
 		
-			// TODO: 
-			// Eventually this will loop through ALL points and average them together into one world file
+			// Loop through ALL of the points and calculate the average world file
+			var len = subCPs.length < baseCPs.length ? subCPs.length : baseCPs.length;
+			
+			// Create the first world file:
 			var wf = writeWorldFile(subImage, subCPs[0], subCPs[1], baseImage, baseCPs[0], baseCPs[1]);
+
+			// Loop through each permutation of Points
+			for(var j = 0; j < len; ++j) { 
+				for(var k = 0; k < len; ++k) {
+					if((j == 0 && k == 1) || j >= k )
+						continue;
+					wf.average(writeWorldFile(subImage, subCPs[j], subCPs[k], baseImage, baseCPs[j], baseCPs[k]));
+				}
+			}
 			wf.display('worldfile');
+			var params = wf.toData();
+			params.state = "gotWorldFile";
+		
+			myUtil.postToUrl("<?php echo $_SERVER['PHP_SELF']; ?>", params);
 			
 		});
 		
@@ -77,21 +92,19 @@ getOpenLayersHeader();
 
 	<div id="errors"></div>
 	<div id="maps">
-		<div id="originals">
-			<div id="base" class="smallmap"></div>
-			<div id="sub" class="smallmap"></div>
-		</div>
-		<div id="sidepanel">
-			<p>Once you've made at least two control points per image, click Generate!</p>
-			<div id="genButton"><button type="button">Generate</a></button></div>
-			<div id="error"></div>
-			<h2>Base Image Control Points</h2>
-			<div id="basePoints" class="points"></div>
-			<br>
-			<h2>Sub Image Control Points</h2>
-			<div id="subPoints" class="points"></div>
-		</div>
-	</div> 
+		<div id="base" class="smallmap"></div>
+		<div id="sub" class="smallmap"></div>
+	</div>
+	<div id="sidepanel">
+		<p>Once you've made at least two control points per image, click Generate!</p>
+		<div id="genButton"><button type="button">Generate</a></button></div>
+		<div id="error"></div>
+		<h2>Base Image Control Points</h2>
+		<div id="basePoints" class="points"></div>
+		<br>
+		<h2>Sub Image Control Points</h2>
+		<div id="subPoints" class="points"></div>
+	</div>
 	<div class="clearboth"></div>
 	<div id="log"></div>
 	<div id="worldfile"></div>
