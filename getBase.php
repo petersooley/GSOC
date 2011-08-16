@@ -11,7 +11,8 @@ $_SESSION['baseImage'] = new Image();
 
 // This is the location of our temporary folder to store images and files.
 $_SESSION['dataDir'] = "data/";	
-$_SESSION['mapFile'] = $_SESSION['dataDir']."mapfile.map";
+$_SESSION['mapfile'] = $_SESSION['dataDir']."mapfile.map";
+$_SESSION['mapservUrl'] = "../cgi-bin/mapserv";
 
 beginBody();
 ?>
