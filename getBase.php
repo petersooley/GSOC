@@ -41,7 +41,8 @@ The technologies used are:
 To get started, you need a base image (typically of the lowest resolution).
 This will not be <i>changed</i>. That is, all other images will be scaled and
 translated onto this one image. Later, you will add as many (higher resolution) 
-images that you want and carefully place them onto this one base image.
+images that you want and carefully place them onto this one base image. In the
+end we will produce all the files you need to display the final composite.
 </p>
 <form action="index.php" method="post" enctype="multipart/form-data">
 	<label for="baseImage">Base Image (not changed)</label>

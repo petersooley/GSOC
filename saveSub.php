@@ -6,11 +6,12 @@
 
 // Get the details about the sub image. 
 list($w, $h, $type, $ignored) = getimagesize($_FILES['subImage']['tmp_name']);
-$_SESSION['subName'] = "sub";
-$subFile = $_SESSION['dataDir'].$_SESSION['subName'].$_SESSION['subCount'];
+$subName = "sub";
+$subFile = $_SESSION['dataDir'].$subName.$_SESSION['subCount'];
 $sub = new Image();
 $sub->height = $h;
 $sub->width = $w;
+$sub->layerName = $subName.$_SESSION['subCount'];
 
 // Store the image url in a session variable and save the image to the images directory.
 switch($type) {
