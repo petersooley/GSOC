@@ -68,18 +68,21 @@ getOpenLayersHeader();
 			
 			// Create the first world file:
 			var wf = writeWorldFile(subImage, subCPs[0], subCPs[1], baseImage, baseCPs[0], baseCPs[1]);
-
+			/*
 			// Loop through each permutation of Points
 			for(var j = 0; j < len; ++j) { 
 				for(var k = 0; k < len; ++k) {
 					if((j == 0 && k == 1) || j >= k )
 						continue;
 					wf.average(writeWorldFile(subImage, subCPs[j], subCPs[k], baseImage, baseCPs[j], baseCPs[k]));
+
 				}
 			}
+			*/
 			var params = wf.toData();
 			params.state = "gotWorldFile";
-		
+			//wf.display('worldfile');
+			
 			myUtil.postToUrl("<?php echo $_SERVER['PHP_SELF']; ?>", params);
 			
 		});
