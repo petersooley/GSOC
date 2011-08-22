@@ -6,7 +6,7 @@
 ?>
 <script type="text/javascript">
 	function checkData() {
-		var x=document.forms["myForm"]["mapservUrl"].value;
+		var x=document.forms["myForm"]["mapservURL"].value;
 		var y=document.forms["myForm"]["serverDirectory"].value;
 		if (x==null || x=="") {
   			alert("Please enter a location for your mapserv binary.");
@@ -25,8 +25,8 @@
 	and you'll just have to change it later (in the data.html file).</p>
 	<form action="index.php" method="post" name="myForm" onsubmit="return checkData()">
 		
-		<div><label for="mapservUrl">Absolute location of your mapserv binary (i.e. /home/bob/public_html/cgi-bin/mapserv).</label></div>
-		<div><input type="text" name="mapservUrl" id="mapservUrl" size="100"/></div>
+		<div><label for="mapservURL">Absolute location of your mapserv binary (i.e. /home/bob/public_html/cgi-bin/mapserv).</label></div>
+		<div><input type="text" name="mapservURL" id="mapservURL" size="100"/></div>
 		<div><label for="serverDirectory">Absolute location of your website (i.e. /home/bob/public_html/mywebsite). NOTE: No slash at the end.</label></div>
 		<div><input type="text" name="serverDirectory" id="serverDirectory" size="100"/></div>
 		<input type="hidden" name="state" id="state" value="done" />

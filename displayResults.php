@@ -2,6 +2,7 @@
 // This is where we create a mapfile and then use OpenLayers to bring
 // the sub images together with the base image. 
 
+include('makeMapfile.php');
 
 // Get the world file variables sent from javascript
 extract($_POST); // $A, $B, $C, $D, $E, $F
@@ -26,36 +27,7 @@ $baseURL = "/home1/petersoo/public_html/gsoc/";
 $mapfileURL = $baseURL.$_SESSION['mapfile'];
 $mapservURL = "/cgi-bin/mapserv";
 
-$extent = "0 -".$base->height." ".$base->width." 0";
-
-$layers = "base";
-
-$mapfile = sprintf("MAP\n");
-$mapfile .= sprintf("    %-36s %s\n", "SHAPEPATH", "'.'");
-$mapfile .= sprintf("    %-36s %s\n", "EXTENT", $extent);
-$mapfile .= sprintf("    %-36s %s\n", "IMAGETYPE", "PNG24");
-$mapfile .= sprintf("    %-36s %s\n", "IMAGECOLOR", "255 255 255");
-$mapfile .= sprintf("    %-36s %s\n", "SIZE", "".$base->width." ".$base->height);
-$mapfile .= sprintf("\n");
-$mapfile .= sprintf("    LAYER\n");
-$mapfile .= sprintf("        %-32s %s\n", "NAME", "'base'");
-$mapfile .= sprintf("        %-32s %s\n", "DATA", "'".$baseURL.$base->url."'");
-$mapfile .= sprintf("        %-32s %s\n", "STATUS", "DEFAULT");
-$mapfile .= sprintf("        %-32s %s\n", "TYPE", "RASTER");
-$mapfile .= sprintf("    END\n");
-foreach($_SESSION['subImages'] as $sub) {
-	$mapfile .= sprintf("\n");
-	$mapfile .= sprintf("    LAYER\n");
-	$mapfile .= sprintf("        %-32s %s\n", "NAME", "'".$sub->layerName."'");
-	$mapfile .= sprintf("        %-32s %s\n", "DATA", "'".$baseURL.$sub->url."'");
-	$mapfile .= sprintf("        %-32s %s\n", "STATUS", "DEFAULT");
-	$mapfile .= sprintf("        %-32s %s\n", "TYPE", "RASTER");
-	$mapfile .= sprintf("    END\n");
-	$layers .= ", ".$sub->layerName;
-}
-
-$_SESSION['layers'] = $layers; // needed later in done.php
-$mapfile .= sprintf("END\n");
+$mapfile = makeMapfile($baseURL);
 
 file_put_contents($_SESSION['mapfile'], $mapfile);
 
@@ -87,7 +59,7 @@ getOpenLayersHeader();
                  	<?php echo '"'.$_SESSION['mapservUrl'].'"'; ?>, 
                   {
                   	map: <?php echo '"'.$baseURL.$_SESSION['mapfile'].'"'; ?>,
-                  	layers: <?php echo '"'.$layers.'"'; ?>,
+                  	layers: <?php echo '"'.$_SESSION['layers'].'"'; ?>,
                   	mode: "map"
                   }
                );
