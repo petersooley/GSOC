@@ -1,7 +1,7 @@
 <?php extract($_POST); ?>
 <html>
 <head>
-	<script src="OpenLayers/lib/OpenLayers.js"></script>	
+	<script src="<?php echo $openLayersURL; ?>"></script>	
 	
 	<style type="text/css">
 		.smallmap {
@@ -23,12 +23,12 @@
 		
 			var options = { maxExtent : bnds, maxResolution: res};
 			
-			var map = new OpenLayers.Map( "results", options);
+			var map = new OpenLayers.Map( "map", options);
 			var layer = new OpenLayers.Layer.MapServer( 
 							"All together now!", 
-							<?php echo '"'.$mapservUrl.'"'; ?>, 
+							<?php echo '"'.$mapservURL.'"'; ?>, 
 							{
-								map: <?php echo '"'.$mapfileUrl.'"'; ?>,
+								map: <?php echo '"'.$mapfileURL.'"'; ?>,
 								layers: <?php echo '"'.$layers.'"'; ?>,
 								mode: "map"
 							}

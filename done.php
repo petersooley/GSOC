@@ -7,6 +7,8 @@
 
 
 include('makeMapfile.php');
+include('zipFunction.php');
+
 
 // Part 1. Generate data.html. This is the main file that will display the user's data.
 $base = $_SESSION['baseImage'];
@@ -17,13 +19,15 @@ $height = $base->height;
 $mapservURL = $_POST['mapservURL'];
 $serverDirectory = $_POST['serverDirectory'];
 $mapfileURL = $serverDirectory."/data/mapfile.map";
+$openLayersURL = $_POST['openLayersURL'];
 $tempMapfileURL = "/home1/petersoo/public_html/gsoc/data/mapfile.map";
 $layers = $_SESSION['layers'];
 $fields = array(
             'width'=>urlencode($width),
             'height'=>urlencode($height),
-            'mapservUrl'=>urlencode($mapservURL),
-            'mapfileUrl'=>urlencode($mapfileURL),
+            'mapservURL'=>urlencode($mapservURL),
+            'mapfileURL'=>urlencode($mapfileURL),
+            'openLayersURL'=>urlencode($openLayersURL),
             'layers'=>urlencode($layers)
         );
 
@@ -58,11 +62,23 @@ file_put_contents($tempMapfileURL, $mapfile);
 
 // Part 3. Zip the files.
 
+function prefixFiles($file) {
+	return "data/".$file;
+}
+$files = scandir("data");
+array_shift($files); // remove "."
+array_shift($files); // remove ".."
+$files = array_map("prefixFiles", $files);
+array_push($files, "data.html");
+create_zip($files, "data.zip");
 
 
 // Part 4. Delete temporary files. (Not a priority but nice.)
 
 beginBody();
 ?>
+
+<p>Here are the files that you need to display your data on the web.</p>
+<div><a href="http://www.petersoots.com/gsoc/data.zip">data.zip</a></div>
 
 <?php endBody(); ?>
